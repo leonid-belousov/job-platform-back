@@ -1,0 +1,77 @@
+﻿using JobPlatform.BLL.CQRS.Applications.DTO;
+using JobPlatform.Core.Entities.Applications;
+using JobPlatform.Core.Entities.Candidates;
+using JobPlatform.Core.Entities.Vacancies;
+using JobPlatform.DAL.Interfaces;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+
+namespace JobPlatform.BLL.CQRS.Applications.Commands.CreateApplication;
+
+public sealed record CreateApplicationCommand(Guid VacancyId, Guid ResumeId, string? CoverLetter)
+    : IRequest<ApplicationDto>
+{
+    public class CreateApplicationCommandHandler : IRequestHandler<CreateApplicationCommand, ApplicationDto>
+    {
+        private readonly IApplicationDbContext _db;
+        private readonly ICurrentUserService _currentUser;
+
+        public CreateApplicationCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser)
+        {
+            _db = db;
+            _currentUser = currentUser;
+        }
+
+        public async Task<ApplicationDto> Handle(CreateApplicationCommand request, CancellationToken cancellationToken)
+        {
+            var userId = _currentUser.UserId ?? throw new UnauthorizedAccessException();
+            
+            var candidate =
+                await _db.Set<CandidateProfile>().FirstOrDefaultAsync(x => x.UserId == userId && !x.IsDeleted,
+                    cancellationToken)
+                ?? throw new InvalidOperationException("Профиль кандидата не найден.");
+
+            var resume = await _db.Set<Resume>().FirstOrDefaultAsync(
+                             x => x.Id == request.ResumeId && x.CandidateProfileId == candidate.Id && !x.IsDeleted,
+                             cancellationToken)
+                         ?? throw new InvalidOperationException("Резюме не найдено или недоступно.");
+
+            var vacancy = await _db.Set<JobVacancy>().FirstOrDefaultAsync(
+                              x => x.Id == request.VacancyId && x.Status == "Published" && !x.IsDeleted,
+                              cancellationToken)
+                          ?? throw new InvalidOperationException("Опубликованная вакансия не найдена.");
+
+            var exists = await _db.Set<JobApplication>().AnyAsync(
+                x => x.VacancyId == request.VacancyId && x.CandidateProfileId == candidate.Id && !x.IsDeleted,
+                cancellationToken);
+
+            if (exists) throw new InvalidOperationException("Отклик на эту вакансию уже создан.");
+
+            var application = new JobApplication
+            {
+                VacancyId = vacancy.Id,
+                CandidateProfileId = candidate.Id,
+                ResumeId = resume.Id,
+                CoverLetter = request.CoverLetter,
+                Status = "Sent"
+            };
+            application.StatusHistory.Add(new ApplicationStatusHistory
+            {
+                JobApplication = application,
+                OldStatus = null,
+                NewStatus = "Sent",
+                ChangedByUserId = userId,
+                Comment = "Отклик создан кандидатом."
+            });
+
+            await _db.Set<JobApplication>().AddAsync(application, cancellationToken);
+            
+            await _db.SaveChangesAsync(cancellationToken);
+
+            var candidateName = $"{candidate.FirstName} {candidate.LastName}".Trim();
+            
+            return new ApplicationDto(application.Id, vacancy.Id, vacancy.Title, candidate.Id, candidateName, resume.Id,
+                application.Status, application.CoverLetter, application.CreatedAt);
+        }
+    }
+}

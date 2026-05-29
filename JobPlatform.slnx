@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/api/">
+    <Project Path="JobPlatform.API/JobPlatform.API.csproj" />
+  </Folder>
+  <Folder Name="/src/libs/" />
+  <Folder Name="/src/libs/bll/">
+    <Project Path="JobPlatform.BLL/JobPlatform.BLL.csproj" />
+  </Folder>
+  <Folder Name="/src/libs/dal/">
+    <Project Path="JobPlatform.Core/JobPlatform.Core.csproj" />
+    <Project Path="JobPlatform.DAL/JobPlatform.DAL.csproj" />
+  </Folder>
+</Solution>

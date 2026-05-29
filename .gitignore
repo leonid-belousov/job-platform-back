@@ -1,0 +1,89 @@
+# Файлы для .NET
+bin/
+obj/
+out/
+TestResults/
+*.user
+*.suo
+*.psess
+*.vsp
+*.vspx
+*.ncrunch*
+*.vspscc
+*.vssscc
+*.dotCover
+
+# Кеш и временные файлы
+*.cache
+*.log
+*.vs/
+.vscode/
+.vsconfig
+.idea/
+*.sw?
+*.DS_Store
+*.tmp
+*.bak
+
+# Конфигурационные файлы, которые не должны попасть в репозиторий
+secrets.json
+.env
+.env.local
+.env.*.local
+*.env
+!*.env.example
+!*.env.template
+
+# Docker secrets и override файлы
+docker-compose.override.yml
+docker-compose.*.override.yml
+
+# NuGet-пакеты
+*.nupkg
+*.snupkg
+.nuget/packages/
+packages/
+project.lock.json
+artifacts/
+
+# Rider и JetBrains
+*.sln.iml
+.idea/
+*.dotSettings
+*.ReSharper
+*.sln.DotSettings.user
+
+# GitLab CI/CD кеш
+.gitlab-ci.yml.cache/
+
+# Let's Encrypt runtime files
+docker/certbot/conf/
+
+# Сертификаты и ключи
+*.pfx
+*.key
+*.crt
+*.pem
+docker/certs/
+docker/mosquitto/data
+docker/mosquitto/log
+docker/tileserver/logs
+docker/tileserver/data/*.mbtiles
+docker/tileserver/data/logs
+docker/tileserver/data/fonts
+
+# Логи приложений
+logs/
+.qwen/
+*.log
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+LicenseAuthority/App_Data/
