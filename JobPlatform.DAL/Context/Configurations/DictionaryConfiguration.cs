@@ -1,4 +1,4 @@
-﻿using JobPlatform.Core.Entities.Dictionaries;
+using JobPlatform.Core.Entities.Dictionaries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,9 +13,12 @@ public sealed class DictionaryConfiguration : IEntityTypeConfiguration<Dictionar
         builder.Property(x => x.Type).HasMaxLength(80).IsRequired();
         builder.Property(x => x.Code).HasMaxLength(120).IsRequired();
         builder.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.NameEn).HasMaxLength(200);
         builder.Property(x => x.Description).HasMaxLength(1000);
+        builder.Property(x => x.DescriptionEn).HasMaxLength(1000);
         builder.HasIndex(x => new { x.Type, x.Code }).IsUnique();
         builder.HasIndex(x => new { x.Type, x.IsActive, x.SortOrder });
         builder.HasIndex(x => x.Name);
+        builder.HasIndex(x => x.NameEn);
     }
 }
