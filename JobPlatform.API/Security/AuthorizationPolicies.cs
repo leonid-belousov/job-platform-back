@@ -18,5 +18,7 @@ public static class AuthorizationPolicies
         options.AddPolicy("DictionariesManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.DictionariesManage)));
         options.AddPolicy("ModerationRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.ModerationRead)));
         options.AddPolicy("ModerationManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.ModerationManage)));
+        options.AddPolicy("CrmRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CrmRead)));
+        options.AddPolicy("CrmManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CrmManage)));
     }
 }

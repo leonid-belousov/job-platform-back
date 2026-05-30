@@ -79,6 +79,8 @@ public class RoleSeeder
             new Permission { Code = "dictionaries.manage", Name = "Управление справочниками", Module = "Dictionaries" },
             new Permission { Code = "moderation.read", Name = "Просмотр очереди модерации", Module = "Moderation" },
             new Permission { Code = "moderation.manage", Name = "Управление модерацией", Module = "Moderation" },
+            new Permission { Code = "crm.read", Name = "Просмотр CRM", Module = "CRM" },
+            new Permission { Code = "crm.manage", Name = "Управление CRM", Module = "CRM" },
             new Permission { Code = "admin.full_access", Name = "Полный административный доступ", Module = "Admin" }
         };
 
@@ -106,7 +108,7 @@ public class RoleSeeder
             new[] { "companies.manage", "vacancies.manage", "applications.manage", "dictionaries.read" },
             cancellationToken);
         await AssignAsync("recruiter",
-            new[] { "companies.read", "vacancies.manage", "applications.manage", "dictionaries.read" },
+            new[] { "companies.read", "vacancies.manage", "applications.manage", "dictionaries.read", "crm.read", "crm.manage"  },
             cancellationToken);
         await AssignAsync("admin", permissionDefinitions.Select(x => x.Code).ToArray(), cancellationToken);
 

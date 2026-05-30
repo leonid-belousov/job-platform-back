@@ -37,4 +37,10 @@ public static class AuditActions
     public const string DictionaryItemUpdated = "dictionary.item_updated";
     public const string DictionaryItemActivated = "dictionary.item_activated";
     public const string DictionaryItemDeactivated = "dictionary.item_deactivated";
+    
+    public const string CrmLeadCreated = "crm.lead_created";
+    public const string CrmLeadUpdated = "crm.lead_updated";
+    public const string CrmTaskCreated = "crm.task_created";
+    public const string CrmTaskCompleted = "crm.task_completed";
+    public const string CrmActivityAdded = "crm.activity_added";
 }
