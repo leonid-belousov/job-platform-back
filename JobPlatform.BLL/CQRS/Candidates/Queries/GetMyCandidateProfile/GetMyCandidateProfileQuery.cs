@@ -1,4 +1,4 @@
-﻿using JobPlatform.BLL.CQRS.Candidates.DTO;
+using JobPlatform.BLL.CQRS.Candidates.DTO;
 using JobPlatform.Core.Entities.Candidates;
 using JobPlatform.DAL.Interfaces;
 using MediatR;
@@ -24,14 +24,35 @@ public sealed record GetMyCandidateProfileQuery : IRequest<CandidateProfileDto>
         {
             var userId = _currentUser.UserId ?? throw new UnauthorizedAccessException();
 
-
             var profile = await _db.Set<CandidateProfile>().AsNoTracking()
+                              .Include(x => x.Languages.Where(language => !language.IsDeleted))
                               .FirstOrDefaultAsync(x => x.UserId == userId && !x.IsDeleted, cancellationToken)
                           ?? throw new InvalidOperationException("Профиль кандидата не найден.");
 
-
-            return new CandidateProfileDto(profile.Id, profile.FirstName, profile.LastName, profile.City,
-                profile.DesiredPosition, profile.ExpectedSalary);
+            return new CandidateProfileDto(
+                profile.Id,
+                profile.FirstName,
+                profile.MiddleName,
+                profile.LastName,
+                profile.DateOfBirth,
+                profile.Citizenship,
+                profile.CountryOfResidence,
+                profile.City,
+                profile.Phone,
+                profile.DesiredPosition,
+                profile.ExpectedSalary,
+                profile.Currency,
+                profile.About,
+                profile.IsVisible,
+                profile.JobSearchStatus,
+                profile.ModerationStatus,
+                profile.ModerationComment,
+                profile.ModeratedByUserId,
+                profile.ModeratedAt,
+                profile.Languages
+                    .OrderBy(x => x.LanguageCode)
+                    .Select(x => new CandidateLanguageDto(x.Id, x.LanguageCode, x.Level))
+                    .ToArray());
         }
     }
 }
