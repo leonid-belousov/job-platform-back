@@ -83,6 +83,7 @@ public class RoleSeeder
             new Permission { Code = "crm.manage", Name = "Управление CRM", Module = "CRM" },
             new Permission { Code = "questionnaires.read", Name = "Просмотр анкет", Module = "Questionnaires" },
             new Permission { Code = "questionnaires.manage", Name = "Управление анкетами", Module = "Questionnaires" },
+            new Permission { Code = "analytics.read", Name = "Просмотр аналитики", Module = "Analytics" },
             new Permission { Code = "admin.full_access", Name = "Полный административный доступ", Module = "Admin" }
         };
 
@@ -104,13 +105,25 @@ public class RoleSeeder
         await _db.SaveChangesAsync(cancellationToken);
 
         await AssignAsync("candidate",
-            new[] { "candidates.manage_own", "vacancies.read", "applications.read", "dictionaries.read", "questionnaires.read" },
+            new[]
+            {
+                "candidates.manage_own", "vacancies.read", "applications.read", "dictionaries.read",
+                "questionnaires.read"
+            },
             cancellationToken);
         await AssignAsync("employer",
-            new[] { "companies.manage", "vacancies.manage", "applications.manage", "dictionaries.read", "questionnaires.read" },
+            new[]
+            {
+                "companies.manage", "vacancies.manage", "applications.manage", "dictionaries.read",
+                "questionnaires.read", "analytics.read"
+            },
             cancellationToken);
         await AssignAsync("recruiter",
-            new[] { "companies.read", "vacancies.manage", "applications.manage", "dictionaries.read", "crm.read", "crm.manage", "questionnaires.read", "questionnaires.manage"   },
+            new[]
+            {
+                "companies.read", "vacancies.manage", "applications.manage", "dictionaries.read", "crm.read",
+                "crm.manage", "questionnaires.read", "questionnaires.manage", "analytics.read"
+            },
             cancellationToken);
         await AssignAsync("admin", permissionDefinitions.Select(x => x.Code).ToArray(), cancellationToken);
 

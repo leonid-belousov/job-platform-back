@@ -1,4 +1,5 @@
-﻿using JobPlatform.BLL.CQRS.Audit.Queries.GetAuditLogById;
+﻿using JobPlatform.BLL.CQRS.Analytics.Queries.GetAdminDashboard;
+using JobPlatform.BLL.CQRS.Audit.Queries.GetAuditLogById;
 using JobPlatform.BLL.CQRS.Audit.Queries.GetAuditLogs;
 using JobPlatform.BLL.CQRS.Auth.Commands.RevokeUserSessions;
 using JobPlatform.BLL.CQRS.Moderation.Commands.ApproveCompany;
@@ -26,6 +27,10 @@ public class AdminController : ControllerBase
     {
         _mediator = mediator;
     }
+    
+    [HttpGet("dashboard")]
+    public async Task<IActionResult> Dashboard(CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(new GetAdminDashboardQuery(), cancellationToken));
 
     [HttpGet("users")]
     public async Task<IActionResult> Users([FromQuery] string? search, [FromQuery] int page = 1,

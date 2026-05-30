@@ -22,5 +22,6 @@ public static class AuthorizationPolicies
         options.AddPolicy("CrmManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CrmManage)));
         options.AddPolicy("QuestionnairesRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.QuestionnairesRead)));
         options.AddPolicy("QuestionnairesManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.QuestionnairesManage)));
+        options.AddPolicy("AnalyticsRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.AnalyticsRead)));
     }
 }
