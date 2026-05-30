@@ -81,6 +81,8 @@ public class RoleSeeder
             new Permission { Code = "moderation.manage", Name = "Управление модерацией", Module = "Moderation" },
             new Permission { Code = "crm.read", Name = "Просмотр CRM", Module = "CRM" },
             new Permission { Code = "crm.manage", Name = "Управление CRM", Module = "CRM" },
+            new Permission { Code = "questionnaires.read", Name = "Просмотр анкет", Module = "Questionnaires" },
+            new Permission { Code = "questionnaires.manage", Name = "Управление анкетами", Module = "Questionnaires" },
             new Permission { Code = "admin.full_access", Name = "Полный административный доступ", Module = "Admin" }
         };
 
@@ -102,13 +104,13 @@ public class RoleSeeder
         await _db.SaveChangesAsync(cancellationToken);
 
         await AssignAsync("candidate",
-            new[] { "candidates.manage_own", "vacancies.read", "applications.read", "dictionaries.read" },
+            new[] { "candidates.manage_own", "vacancies.read", "applications.read", "dictionaries.read", "questionnaires.read" },
             cancellationToken);
         await AssignAsync("employer",
-            new[] { "companies.manage", "vacancies.manage", "applications.manage", "dictionaries.read" },
+            new[] { "companies.manage", "vacancies.manage", "applications.manage", "dictionaries.read", "questionnaires.read" },
             cancellationToken);
         await AssignAsync("recruiter",
-            new[] { "companies.read", "vacancies.manage", "applications.manage", "dictionaries.read", "crm.read", "crm.manage"  },
+            new[] { "companies.read", "vacancies.manage", "applications.manage", "dictionaries.read", "crm.read", "crm.manage", "questionnaires.read", "questionnaires.manage"   },
             cancellationToken);
         await AssignAsync("admin", permissionDefinitions.Select(x => x.Code).ToArray(), cancellationToken);
 

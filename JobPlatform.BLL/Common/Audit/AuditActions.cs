@@ -43,4 +43,11 @@ public static class AuditActions
     public const string CrmTaskCreated = "crm.task_created";
     public const string CrmTaskCompleted = "crm.task_completed";
     public const string CrmActivityAdded = "crm.activity_added";
+    
+    public const string QuestionnaireCreated = "questionnaire.created";
+    public const string QuestionnaireUpdated = "questionnaire.updated";
+    public const string QuestionnaireSectionAdded = "questionnaire.section_added";
+    public const string QuestionnaireQuestionAdded = "questionnaire.question_added";
+    public const string QuestionnaireOptionAdded = "questionnaire.option_added";
+    public const string QuestionnaireResponseSubmitted = "questionnaire.response_submitted";
 }

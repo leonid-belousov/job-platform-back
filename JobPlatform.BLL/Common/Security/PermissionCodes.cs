@@ -17,6 +17,8 @@ public static class PermissionCodes
     public const string ModerationManage = "moderation.manage";
     public const string CrmRead = "crm.read";
     public const string CrmManage = "crm.manage";
+    public const string QuestionnairesRead = "questionnaires.read";
+    public const string QuestionnairesManage = "questionnaires.manage";
     public const string AdminFullAccess = "admin.full_access";
 }
 

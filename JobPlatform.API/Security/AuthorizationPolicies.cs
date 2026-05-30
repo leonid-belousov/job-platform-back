@@ -20,5 +20,7 @@ public static class AuthorizationPolicies
         options.AddPolicy("ModerationManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.ModerationManage)));
         options.AddPolicy("CrmRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CrmRead)));
         options.AddPolicy("CrmManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CrmManage)));
+        options.AddPolicy("QuestionnairesRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.QuestionnairesRead)));
+        options.AddPolicy("QuestionnairesManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.QuestionnairesManage)));
     }
 }
