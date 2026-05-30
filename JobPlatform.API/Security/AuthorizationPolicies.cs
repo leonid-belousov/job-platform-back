@@ -1,4 +1,4 @@
-﻿using JobPlatform.BLL.Common.Security;
+using JobPlatform.BLL.Common.Security;
 using Microsoft.AspNetCore.Authorization;
 
 namespace JobPlatform.API.Security;
@@ -13,6 +13,7 @@ public static class AuthorizationPolicies
         options.AddPolicy("CompaniesManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CompaniesManage)));
         options.AddPolicy("VacanciesManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.VacanciesManage)));
         options.AddPolicy("ApplicationsManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.ApplicationsManage)));
+        options.AddPolicy("CandidatesRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CandidatesRead)));
         options.AddPolicy("CandidatesManageOwn", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CandidatesManageOwn)));
         options.AddPolicy("DictionariesRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.DictionariesRead)));
         options.AddPolicy("DictionariesManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.DictionariesManage)));
