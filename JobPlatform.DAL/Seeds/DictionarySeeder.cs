@@ -1,4 +1,5 @@
-﻿using JobPlatform.Core.Entities.Dictionaries;
+using JobPlatform.Core.Entities.Applications;
+using JobPlatform.Core.Entities.Dictionaries;
 using JobPlatform.DAL.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -71,13 +72,12 @@ public class DictionarySeeder
             Item(DictionaryTypes.VacancyStatus, "archived", "Архив", 30),
             Item(DictionaryTypes.VacancyStatus, "closed", "Закрыта", 40),
 
-            Item(DictionaryTypes.ApplicationStatus, "sent", "Отправлен", 10),
-            Item(DictionaryTypes.ApplicationStatus, "viewed", "Просмотрен", 20),
-            Item(DictionaryTypes.ApplicationStatus, "in_progress", "В работе", 30),
-            Item(DictionaryTypes.ApplicationStatus, "interview", "Приглашение на собеседование", 40),
-            Item(DictionaryTypes.ApplicationStatus, "rejected", "Отказ", 50),
-            Item(DictionaryTypes.ApplicationStatus, "accepted", "Принят", 60),
-            Item(DictionaryTypes.ApplicationStatus, "closed", "Закрыт", 70)
+            Item(DictionaryTypes.ApplicationStatus, ApplicationStatuses.New, "Новый", 10),
+            Item(DictionaryTypes.ApplicationStatus, ApplicationStatuses.UnderReview, "На рассмотрении", 20),
+            Item(DictionaryTypes.ApplicationStatus, ApplicationStatuses.Interview, "Интервью", 30),
+            Item(DictionaryTypes.ApplicationStatus, ApplicationStatuses.Approved, "Одобрен", 40),
+            Item(DictionaryTypes.ApplicationStatus, ApplicationStatuses.Rejected, "Отказ", 50),
+            Item(DictionaryTypes.ApplicationStatus, ApplicationStatuses.Hired, "Принят", 60)
         };
 
         foreach (var item in items)
