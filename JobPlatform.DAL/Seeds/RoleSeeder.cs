@@ -1,4 +1,4 @@
-﻿using JobPlatform.Core.Entities.Users;
+using JobPlatform.Core.Entities.Users;
 using JobPlatform.DAL.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,27 +15,18 @@ public class RoleSeeder
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            // await _db.Database.MigrateAsync(cancellationToken: cancellationToken);
-            await SeedRoleDefinitions(cancellationToken);
-            await SeedPermissionDefinitions(cancellationToken);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
+        await SeedRoleDefinitions(cancellationToken);
+        await SeedPermissionDefinitions(cancellationToken);
     }
 
     private async Task SeedRoleDefinitions(CancellationToken cancellationToken)
     {
         var roleDefinitions = new[]
         {
-            new Role { Code = "candidate", Name = "Кандидат", IsSystem = true },
-            new Role { Code = "employer", Name = "Работодатель", IsSystem = true },
-            new Role { Code = "recruiter", Name = "Рекрутер", IsSystem = true },
-            new Role { Code = "admin", Name = "Администратор", IsSystem = true, IsFullAccess = true }
+            new Role { Code = "candidate", Name = "Candidate", IsSystem = true },
+            new Role { Code = "employer", Name = "Employer", IsSystem = true },
+            new Role { Code = "recruiter", Name = "Recruiter", IsSystem = true },
+            new Role { Code = "admin", Name = "Admin", IsSystem = true, IsFullAccess = true }
         };
 
         foreach (var roleDefinition in roleDefinitions)
@@ -57,34 +48,30 @@ public class RoleSeeder
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-
     private async Task SeedPermissionDefinitions(CancellationToken cancellationToken = default)
     {
         var permissionDefinitions = new[]
         {
-            new Permission { Code = "users.read", Name = "Просмотр пользователей", Module = "Users" },
-            new Permission { Code = "users.manage", Name = "Управление пользователями", Module = "Users" },
-            new Permission { Code = "companies.read", Name = "Просмотр компаний", Module = "Companies" },
-            new Permission { Code = "companies.manage", Name = "Управление компаниями", Module = "Companies" },
-            new Permission { Code = "vacancies.read", Name = "Просмотр вакансий", Module = "Vacancies" },
-            new Permission { Code = "vacancies.manage", Name = "Управление вакансиями", Module = "Vacancies" },
-            new Permission { Code = "applications.read", Name = "Просмотр откликов", Module = "Applications" },
-            new Permission { Code = "applications.manage", Name = "Управление откликами", Module = "Applications" },
-            new Permission
-            {
-                Code = "candidates.manage_own", Name = "Управление собственным профилем кандидата",
-                Module = "Candidates"
-            },
-            new Permission { Code = "dictionaries.read", Name = "Просмотр справочников", Module = "Dictionaries" },
-            new Permission { Code = "dictionaries.manage", Name = "Управление справочниками", Module = "Dictionaries" },
-            new Permission { Code = "moderation.read", Name = "Просмотр очереди модерации", Module = "Moderation" },
-            new Permission { Code = "moderation.manage", Name = "Управление модерацией", Module = "Moderation" },
-            new Permission { Code = "crm.read", Name = "Просмотр CRM", Module = "CRM" },
-            new Permission { Code = "crm.manage", Name = "Управление CRM", Module = "CRM" },
-            new Permission { Code = "questionnaires.read", Name = "Просмотр анкет", Module = "Questionnaires" },
-            new Permission { Code = "questionnaires.manage", Name = "Управление анкетами", Module = "Questionnaires" },
-            new Permission { Code = "analytics.read", Name = "Просмотр аналитики", Module = "Analytics" },
-            new Permission { Code = "admin.full_access", Name = "Полный административный доступ", Module = "Admin" }
+            new Permission { Code = "users.read", Name = "Read users", Module = "Users" },
+            new Permission { Code = "users.manage", Name = "Manage users", Module = "Users" },
+            new Permission { Code = "companies.read", Name = "Read companies", Module = "Companies" },
+            new Permission { Code = "companies.manage", Name = "Manage companies", Module = "Companies" },
+            new Permission { Code = "vacancies.read", Name = "Read vacancies", Module = "Vacancies" },
+            new Permission { Code = "vacancies.manage", Name = "Manage vacancies", Module = "Vacancies" },
+            new Permission { Code = "applications.read", Name = "Read applications", Module = "Applications" },
+            new Permission { Code = "applications.manage", Name = "Manage applications", Module = "Applications" },
+            new Permission { Code = "candidates.read", Name = "Read candidates", Module = "Candidates" },
+            new Permission { Code = "candidates.manage_own", Name = "Manage own candidate profile", Module = "Candidates" },
+            new Permission { Code = "dictionaries.read", Name = "Read dictionaries", Module = "Dictionaries" },
+            new Permission { Code = "dictionaries.manage", Name = "Manage dictionaries", Module = "Dictionaries" },
+            new Permission { Code = "moderation.read", Name = "Read moderation queue", Module = "Moderation" },
+            new Permission { Code = "moderation.manage", Name = "Manage moderation", Module = "Moderation" },
+            new Permission { Code = "crm.read", Name = "Read CRM", Module = "CRM" },
+            new Permission { Code = "crm.manage", Name = "Manage CRM", Module = "CRM" },
+            new Permission { Code = "questionnaires.read", Name = "Read questionnaires", Module = "Questionnaires" },
+            new Permission { Code = "questionnaires.manage", Name = "Manage questionnaires", Module = "Questionnaires" },
+            new Permission { Code = "analytics.read", Name = "Read analytics", Module = "Analytics" },
+            new Permission { Code = "admin.full_access", Name = "Full admin access", Module = "Admin" }
         };
 
         foreach (var permissionDefinition in permissionDefinitions)
@@ -120,7 +107,7 @@ public class RoleSeeder
         await AssignAsync("recruiter",
             new[]
             {
-                "companies.read", "vacancies.manage", "applications.manage", "dictionaries.read", "crm.read",
+                "companies.read", "vacancies.manage", "applications.manage", "candidates.read", "dictionaries.read", "crm.read",
                 "crm.manage", "questionnaires.read", "questionnaires.manage", "analytics.read"
             },
             cancellationToken);
