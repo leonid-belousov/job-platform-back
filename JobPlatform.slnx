@@ -11,4 +11,7 @@
     <Project Path="JobPlatform.Core/JobPlatform.Core.csproj" />
     <Project Path="JobPlatform.DAL/JobPlatform.DAL.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="JobPlatform.API.Tests/JobPlatform.API.Tests.csproj" />
+  </Folder>
 </Solution>

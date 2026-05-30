@@ -29,20 +29,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
-var origins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>();
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll",
-        builder =>
-        {
-            builder
-                .WithOrigins(origins)
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials();
-        });
-});
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddRecruitmentSwagger();
 builder.Services.AddControllers();
@@ -80,12 +66,17 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapRecruitmentHealthChecks();
 
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsEnvironment("Testing"))
 {
-    var db = scope.ServiceProvider.GetRequiredService<RoleSeeder>();
+    using var scope = app.Services.CreateScope();
+
+    var roleSeeder = scope.ServiceProvider.GetRequiredService<RoleSeeder>();
     var dictionarySeeder = scope.ServiceProvider.GetRequiredService<DictionarySeeder>();
-    await db.SeedAsync();
+
+    await roleSeeder.SeedAsync();
     await dictionarySeeder.SeedAsync();
 }
 
 app.Run();
+
+public partial class Program { }

@@ -1,5 +1,6 @@
 ﻿using JobPlatform.BLL.CQRS.Companies.Commands.CreateCompany;
 using JobPlatform.BLL.CQRS.Companies.Commands.UpdateCompany;
+using JobPlatform.BLL.CQRS.Companies.Commands.UpdateCompanyLogo;
 using JobPlatform.BLL.CQRS.Companies.Queries.GetMyCompanies;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -20,15 +21,19 @@ public sealed class CompaniesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(CreateCompanyCommand command, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody]CreateCompanyCommand command, CancellationToken cancellationToken)
         => Ok(await _mediator.Send(command, cancellationToken));
 
     [HttpPut("{companyId:guid}")]
-    public async Task<IActionResult> Update(Guid companyId, UpdateCompanyCommand command,
+    public async Task<IActionResult> Update(Guid companyId,[FromBody] UpdateCompanyCommand command,
         CancellationToken cancellationToken)
         => Ok(await _mediator.Send(command with { CompanyId = companyId }, cancellationToken));
 
     [HttpGet("my")]
     public async Task<IActionResult> My(CancellationToken cancellationToken)
         => Ok(await _mediator.Send(new GetMyCompaniesQuery(), cancellationToken));
+    
+    [HttpPatch("{companyId:guid}/logo")]
+    public async Task<IActionResult> UpdateLogo(Guid companyId, UpdateCompanyLogoCommand command, CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(command with { CompanyId = companyId }, cancellationToken));
 }

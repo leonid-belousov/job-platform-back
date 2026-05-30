@@ -1,0 +1,84 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  SOLUTION_FILE: RecruitmentPlatform.sln
+  API_PROJECT: src/RecruitmentPlatform.Api/RecruitmentPlatform.Api.csproj
+  INFRASTRUCTURE_PROJECT: src/RecruitmentPlatform.Infrastructure/RecruitmentPlatform.Infrastructure.csproj
+  TEST_PROJECT: tests/RecruitmentPlatform.Api.Tests/RecruitmentPlatform.Api.Tests.csproj
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-test-and-verify:
+    name: Restore, build, test, migrations, Docker build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
+
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test ${{ env.TEST_PROJECT }} --configuration Release --no-build --logger trx --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/*.trx
+          if-no-files-found: ignore
+
+      - name: Install dotnet-ef
+        run: dotnet tool install --global dotnet-ef --version 8.*
+
+      - name: Verify EF migration script generation
+        run: |
+          mkdir -p artifacts/migrations
+          dotnet ef migrations script --idempotent \
+            --project ${{ env.INFRASTRUCTURE_PROJECT }} \
+            --startup-project ${{ env.API_PROJECT }} \
+            --configuration Release \
+            --output artifacts/migrations/migrations.sql
+
+      - name: Upload migration script
+        uses: actions/upload-artifact@v4
+        with:
+          name: ef-migrations-script
+          path: artifacts/migrations/migrations.sql
+          if-no-files-found: error
+
+      - name: Docker build
+        run: docker build -t recruitment-platform-api:ci -f src/RecruitmentPlatform.Api/Dockerfile .

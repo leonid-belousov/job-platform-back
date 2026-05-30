@@ -22,7 +22,7 @@ public class VacanciesController : ControllerBase
 
     [Authorize(Policy = "VacanciesManage")]
     [HttpPost]
-    public async Task<IActionResult> Create(CreateVacancyCommand command, CancellationToken cancellationToken) =>
+    public async Task<IActionResult> Create([FromBody]CreateVacancyCommand command, CancellationToken cancellationToken) =>
         Ok(await _mediator.Send(command, cancellationToken));
 
     [Authorize(Policy = "VacanciesManage")]

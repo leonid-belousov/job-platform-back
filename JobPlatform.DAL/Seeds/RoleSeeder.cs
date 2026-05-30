@@ -17,7 +17,7 @@ public class RoleSeeder
     {
         try
         {
-            await _db.Database.MigrateAsync(cancellationToken: cancellationToken);
+            // await _db.Database.MigrateAsync(cancellationToken: cancellationToken);
             await SeedRoleDefinitions(cancellationToken);
             await SeedPermissionDefinitions(cancellationToken);
         }
@@ -116,8 +116,7 @@ public class RoleSeeder
             {
                 "companies.manage", "vacancies.manage", "applications.manage", "dictionaries.read",
                 "questionnaires.read", "analytics.read"
-            },
-            cancellationToken);
+            }, cancellationToken);
         await AssignAsync("recruiter",
             new[]
             {

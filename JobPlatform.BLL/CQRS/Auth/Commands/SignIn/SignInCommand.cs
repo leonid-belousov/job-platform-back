@@ -50,12 +50,12 @@ public sealed record SignInCommand(string Email, string Password) : IRequest<Aut
 
             user.LastLoginAt = DateTimeOffset.UtcNow;
             var refreshToken = _jwtTokenService.CreateRefreshToken();
-            user.RefreshTokens.Add(new Core.Entities.Users.RefreshToken()
+            await _dbContext.Set<Core.Entities.Users.RefreshToken>().AddAsync(new Core.Entities.Users.RefreshToken
             {
                 UserId = user.Id,
                 TokenHash = _jwtTokenService.HashRefreshToken(refreshToken),
                 ExpiresAt = DateTimeOffset.UtcNow.AddDays(30)
-            });
+            }, cancellationToken);
 
             await _auditService.AddAsync(new AuditEvent(
                 AuditActions.AuthLoginSucceeded,
@@ -65,6 +65,7 @@ public sealed record SignInCommand(string Email, string Password) : IRequest<Aut
                 UserId: user.Id), cancellationToken);
             
             await _dbContext.SaveChangesAsync(cancellationToken);
+            
             var roles = user.UserRoles.Select(p => p.Role.Code).ToArray();
             var permissions = user.UserRoles
                 .SelectMany(p => p.Role.RolePermissions)

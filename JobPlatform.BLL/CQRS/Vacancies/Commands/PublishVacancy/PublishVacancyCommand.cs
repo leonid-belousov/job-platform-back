@@ -80,7 +80,7 @@ public sealed record PublishVacancyCommand(Guid VacancyId) : IRequest<VacancyDto
             await _db.SaveChangesAsync(cancellationToken);
 
             return new VacancyDto(vacancy.Id, vacancy.Title, vacancy.City, vacancy.EmploymentType, vacancy.WorkFormat,
-                vacancy.ExperienceLevel, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Currency, vacancy.Status);
+                vacancy.ExperienceLevel, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Currency, vacancy.Status, vacancy.ModerationStatus);
         }
     }
 }

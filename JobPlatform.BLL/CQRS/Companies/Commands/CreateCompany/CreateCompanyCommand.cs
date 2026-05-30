@@ -20,7 +20,8 @@ public sealed record CreateCompanyCommand(
         private readonly ICurrentUserService _currentUser;
         private readonly IAuditService _auditService;
 
-        public CreateCompanyCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser, IAuditService auditService)
+        public CreateCompanyCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser,
+            IAuditService auditService)
         {
             _db = db;
             _currentUser = currentUser;
@@ -51,17 +52,17 @@ public sealed record CreateCompanyCommand(
             });
 
             await _db.Set<Company>().AddAsync(company, cancellationToken);
-            
+
             await _auditService.AddAsync(new AuditEvent(
                 AuditActions.CompanyCreated,
                 EntityType: nameof(Company),
                 EntityId: company.Id,
                 NewValue: new { company.Name, company.Industry, company.Status },
                 UserId: userId), cancellationToken);
-            
+
             await _db.SaveChangesAsync(cancellationToken);
 
-            return new CompanyDto(company.Id, company.Name, company.Description, company.Industry, company.Website, company.LogoFileId, company.Status, company.VerifiedAt);
+            return new CompanyDto(company.Id, company.Name, company.Description, company.Industry, company.Website, company.LogoFileId, company.Status, company.VerifiedAt, company.ModerationStatus, company.ModerationComment, company.ModeratedByUserId, company.ModeratedAt);
         }
     }
 }

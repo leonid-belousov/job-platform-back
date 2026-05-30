@@ -3,6 +3,7 @@ using JobPlatform.BLL.Common.Interfaces;
 using JobPlatform.BLL.Common.Models;
 using JobPlatform.BLL.CQRS.Vacancies.DTO;
 using JobPlatform.Core.Entities.Companies;
+using JobPlatform.Core.Entities.Dictionaries;
 using JobPlatform.Core.Entities.Vacancies;
 using JobPlatform.DAL.Interfaces;
 using MediatR;
@@ -15,8 +16,12 @@ public record CreateVacancyCommand(
     string Title,
     string Description,
     string? City,
+    string? EmploymentType,
+    string? WorkFormat,
+    string? ExperienceLevel,
     decimal? SalaryFrom,
-    decimal? SalaryTo) : IRequest<VacancyDto>
+    decimal? SalaryTo,
+    string? Currency) : IRequest<VacancyDto>
 {
     public class CreateVacancyCommandHandler : IRequestHandler<CreateVacancyCommand, VacancyDto>
     {
@@ -40,11 +45,28 @@ public record CreateVacancyCommand(
 
             if (!isCompanyMember) throw new UnauthorizedAccessException("Нет доступа к компании.");
 
+            await ValidateDictionaryValueAsync(DictionaryTypes.City, request.City, cancellationToken);
+            await ValidateDictionaryValueAsync(DictionaryTypes.EmploymentType, request.EmploymentType,
+                cancellationToken);
+            await ValidateDictionaryValueAsync(DictionaryTypes.WorkFormat, request.WorkFormat, cancellationToken);
+            await ValidateDictionaryValueAsync(DictionaryTypes.ExperienceLevel, request.ExperienceLevel,
+                cancellationToken);
+            await ValidateDictionaryValueAsync(DictionaryTypes.Currency, request.Currency, cancellationToken);
+
             var vacancy = new JobVacancy
             {
-                CompanyId = request.CompanyId, CreatedByUserId = userId, Title = request.Title,
-                Description = request.Description, City = request.City, SalaryFrom = request.SalaryFrom,
-                SalaryTo = request.SalaryTo, Status = "Draft"
+                CompanyId = request.CompanyId,
+                CreatedByUserId = userId,
+                Title = request.Title,
+                Description = request.Description,
+                City = request.City,
+                EmploymentType = request.EmploymentType,
+                WorkFormat = request.WorkFormat,
+                ExperienceLevel = request.ExperienceLevel,
+                SalaryFrom = request.SalaryFrom,
+                SalaryTo = request.SalaryTo,
+                Currency = request.Currency,
+                Status = "Draft"
             };
 
             await _dbContext.Set<JobVacancy>().AddAsync(vacancy, cancellationToken);
@@ -55,13 +77,27 @@ public record CreateVacancyCommand(
                 EntityId: vacancy.Id,
                 NewValue: new
                 {
-                    vacancy.CompanyId, vacancy.Title, vacancy.City, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Status
+                    vacancy.CompanyId, vacancy.Title, vacancy.City, vacancy.EmploymentType, vacancy.WorkFormat,
+                    vacancy.ExperienceLevel, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Currency, vacancy.Status
                 },
                 UserId: userId), cancellationToken);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            return new VacancyDto(vacancy.Id, vacancy.Title, vacancy.City, vacancy.EmploymentType, vacancy.WorkFormat, vacancy.ExperienceLevel, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Currency, vacancy.Status);
+            return new VacancyDto(vacancy.Id, vacancy.Title, vacancy.City, vacancy.EmploymentType, vacancy.WorkFormat,
+                vacancy.ExperienceLevel, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Currency, vacancy.Status,
+                vacancy.ModerationStatus, vacancy.ModerationComment, vacancy.ModeratedByUserId, vacancy.ModeratedAt);
+        }
+
+        private async Task ValidateDictionaryValueAsync(string type, string? code, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(code)) return;
+
+            var exists = await _dbContext.Set<DictionaryItem>()
+                .AnyAsync(x => x.Type == type && x.Code == code && x.IsActive, cancellationToken);
+            if (!exists)
+                throw new InvalidOperationException(
+                    $"Dictionary value '{code}' is not active or does not exist for type '{type}'.");
         }
     }
 }

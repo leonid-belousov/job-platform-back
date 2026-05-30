@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JobPlatform.BLL.CQRS.Auth.Commands.SignUp;
 
-public sealed record SignUpCommand(string Email, string Password, string RoleCode) : IRequest<AuthResponse>
+public sealed record SignUpCommand(string Email, string Password, string RoleCode, string? IpAddress = null) : IRequest<AuthResponse>
 {
     public class SignUpCommandHandler : IRequestHandler<SignUpCommand, AuthResponse>
     {
@@ -30,13 +30,16 @@ public sealed record SignUpCommand(string Email, string Password, string RoleCod
         public async Task<AuthResponse> Handle(SignUpCommand request, CancellationToken cancellationToken)
         {
             var email = request.Email.Trim().ToLowerInvariant();
+            var roleCode = request.RoleCode.Trim().ToLowerInvariant();
             if (await _dbContext.Set<User>().AnyAsync(p => p.Email == email, cancellationToken: cancellationToken))
             {
                 throw new InvalidOperationException("Пользователь с таким email уже существует");
             }
 
             var role = await _dbContext.Set<Role>()
-                           .FirstOrDefaultAsync(p => p.Code == request.RoleCode, cancellationToken)
+                           .Include(x => x.RolePermissions)
+                           .ThenInclude(x => x.Permission)
+                           .FirstOrDefaultAsync(p => p.Code == roleCode, cancellationToken)
                        ?? throw new InvalidOperationException("Указанная роль не найдена");
 
             var user = new User()
@@ -57,7 +60,8 @@ public sealed record SignUpCommand(string Email, string Password, string RoleCod
             {
                 User = user,
                 TokenHash = _jwtTokenService.HashRefreshToken(refreshToken),
-                ExpiresAt = DateTimeOffset.UtcNow.AddDays(30)
+                ExpiresAt = DateTimeOffset.UtcNow.AddDays(30),
+                CreatedByIp = request.IpAddress
             });
 
             await _dbContext.Set<User>().AddAsync(user, cancellationToken);
@@ -69,9 +73,9 @@ public sealed record SignUpCommand(string Email, string Password, string RoleCod
                 NewValue: new { user.Email, Role = role.Code },
                 UserId: user.Id), cancellationToken);
             
-            await _dbContext.SaveChangesAsync();
-
-            var accessToken = _jwtTokenService.CreateAccessToken(user, new[] { role.Code }, Array.Empty<string>());
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            var permissions = role.RolePermissions.Select(x => x.Permission.Code).Distinct().ToArray();
+            var accessToken = _jwtTokenService.CreateAccessToken(user, new[] { role.Code }, permissions);
             return new AuthResponse(accessToken, refreshToken, user.Id, user.Email);
         }
     }

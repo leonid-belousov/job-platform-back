@@ -1,4 +1,14 @@
 services:
+
+  jobplatform.api:
+    image: jobplatform.api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=host.docker.internal;Port=5432;Database=recruitment_db;Username=recruitment;Password=recruitment_pwd"
+    build:
+      context: .
+      dockerfile: JobPlatform.API/Dockerfile
+  
   postgres:
     image: postgres:latest
     container_name: recruitment_postgres
@@ -31,7 +41,7 @@ services:
     volumes:
       - recruitment_minio_data:/data
     restart: always
-    
+  
   mailhog:
     image: mailhog/mailhog:v1.0.1
     container_name: recruitment_mailhog
@@ -43,3 +53,5 @@ services:
 volumes:
   recruitment_pgdata:
   recruitment_minio_data:
+  
+

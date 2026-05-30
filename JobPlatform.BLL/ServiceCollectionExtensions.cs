@@ -3,6 +3,7 @@ using System.Text;
 using FluentValidation;
 using JobPlatform.BLL.Common.Audit;
 using JobPlatform.BLL.Common.Behaviors;
+using JobPlatform.BLL.Common.Email;
 using JobPlatform.BLL.Common.Interfaces;
 using JobPlatform.BLL.Common.Notifications;
 using JobPlatform.DAL;
@@ -26,6 +27,7 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssembly(assembly);
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddScoped<IAuditService, AuditService>();
+        services.AddScoped<IEmailTemplateRenderer, EmailTemplateRenderer>();
         
         var jwtSection = configuration.GetSection("Jwt");
         var secret = jwtSection["Secret"] ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
