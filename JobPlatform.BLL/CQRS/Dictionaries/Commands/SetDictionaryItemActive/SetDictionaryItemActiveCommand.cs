@@ -1,4 +1,4 @@
-﻿using JobPlatform.BLL.Common.Audit;
+using JobPlatform.BLL.Common.Audit;
 using JobPlatform.BLL.Common.Interfaces;
 using JobPlatform.BLL.Common.Models;
 using JobPlatform.BLL.CQRS.Dictionaries.DTO;
@@ -44,8 +44,8 @@ public sealed record SetDictionaryItemActiveCommand(Guid Id, bool IsActive) : IR
                 UserId: _currentUser.UserId), cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
 
-            return new DictionaryItemDto(item.Id, item.Type, item.Code, item.Name, item.Description, item.SortOrder,
-                item.IsActive);
+            return new DictionaryItemDto(item.Id, item.Type, item.Code, item.Name, item.NameEn, item.Description,
+                item.DescriptionEn, item.SortOrder, item.IsActive);
         }
     }
 }

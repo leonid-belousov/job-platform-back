@@ -1,4 +1,4 @@
-﻿using JobPlatform.BLL.Common.Audit;
+using JobPlatform.BLL.Common.Audit;
 using JobPlatform.BLL.Common.Interfaces;
 using JobPlatform.BLL.Common.Models;
 using JobPlatform.BLL.CQRS.Dictionaries.DTO;
@@ -13,7 +13,9 @@ public sealed record CreateDictionaryItemCommand(
     string Type,
     string Code,
     string Name,
+    string? NameEn,
     string? Description,
+    string? DescriptionEn,
     int SortOrder,
     bool IsActive = true) : IRequest<DictionaryItemDto>
 {
@@ -45,7 +47,9 @@ public sealed record CreateDictionaryItemCommand(
                 Type = request.Type,
                 Code = code,
                 Name = request.Name.Trim(),
+                NameEn = string.IsNullOrWhiteSpace(request.NameEn) ? null : request.NameEn.Trim(),
                 Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
+                DescriptionEn = string.IsNullOrWhiteSpace(request.DescriptionEn) ? null : request.DescriptionEn.Trim(),
                 SortOrder = request.SortOrder,
                 IsActive = request.IsActive
             };
@@ -55,12 +59,12 @@ public sealed record CreateDictionaryItemCommand(
                 AuditActions.DictionaryItemCreated,
                 EntityType: nameof(DictionaryItem),
                 EntityId: item.Id,
-                NewValue: new { item.Type, item.Code, item.Name, item.SortOrder, item.IsActive },
+                NewValue: new { item.Type, item.Code, item.Name, item.NameEn, item.SortOrder, item.IsActive },
                 UserId: _currentUser.UserId), cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
 
-            return new DictionaryItemDto(item.Id, item.Type, item.Code, item.Name, item.Description, item.SortOrder,
-                item.IsActive);
+            return new DictionaryItemDto(item.Id, item.Type, item.Code, item.Name, item.NameEn, item.Description,
+                item.DescriptionEn, item.SortOrder, item.IsActive);
         }
     }
 }

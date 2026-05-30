@@ -3,6 +3,7 @@ using JobPlatform.BLL.CQRS.Applications.Commands.ChangeApplicationStatus;
 using JobPlatform.BLL.CQRS.Applications.Commands.CreateApplication;
 using JobPlatform.BLL.CQRS.Applications.Commands.CreateInterviewInvitation;
 using JobPlatform.BLL.CQRS.Applications.Commands.RespondInterviewInvitation;
+using JobPlatform.BLL.CQRS.Applications.Queries.ExportVacancyApplications;
 using JobPlatform.BLL.CQRS.Applications.Queries.GetApplicationInterviewInvitations;
 using JobPlatform.BLL.CQRS.Applications.Queries.GetCandidateApplications;
 using JobPlatform.BLL.CQRS.Applications.Queries.GetVacancyApplications;
@@ -40,6 +41,13 @@ public class ApplicationsController : ControllerBase
     [HttpGet("by-vacancy/{vacancyId:guid}")]
     public async Task<IActionResult> ByVacancy(Guid vacancyId, CancellationToken cancellationToken)
         => Ok(await _mediator.Send(new GetVacancyApplicationsQuery(vacancyId), cancellationToken));
+
+    [HttpGet("by-vacancy/{vacancyId:guid}/export.csv")]
+    public async Task<IActionResult> ExportByVacancy(Guid vacancyId, CancellationToken cancellationToken)
+    {
+        var bytes = await _mediator.Send(new ExportVacancyApplicationsQuery(vacancyId), cancellationToken);
+        return File(bytes, "text/csv", $"vacancy-{vacancyId}-applications.csv");
+    }
 
     [HttpPost("{applicationId:guid}/interview-invitations")]
     public async Task<IActionResult> CreateInterviewInvitation(Guid applicationId,

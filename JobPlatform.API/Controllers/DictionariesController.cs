@@ -34,7 +34,8 @@ public sealed class DictionariesController : ControllerBase
 
     [Authorize(Policy = "DictionariesManage")]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody]CreateDictionaryItemCommand command, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] CreateDictionaryItemCommand command,
+        CancellationToken cancellationToken)
         => Ok(await _mediator.Send(command, cancellationToken));
 
     [Authorize(Policy = "DictionariesManage")]
@@ -42,7 +43,8 @@ public sealed class DictionariesController : ControllerBase
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateDictionaryItemRequest request,
         CancellationToken cancellationToken)
         => Ok(await _mediator.Send(
-            new UpdateDictionaryItemCommand(id, request.Code, request.Name, request.Description, request.SortOrder,
+            new UpdateDictionaryItemCommand(id, request.Code, request.Name, request.NameEn, request.Description,
+                request.DescriptionEn, request.SortOrder,
                 request.IsActive), cancellationToken));
 
     [Authorize(Policy = "DictionariesManage")]
@@ -55,7 +57,9 @@ public sealed class DictionariesController : ControllerBase
 public sealed record UpdateDictionaryItemRequest(
     string Code,
     string Name,
+    string? NameEn,
     string? Description,
+    string? DescriptionEn,
     int SortOrder,
     bool IsActive);
 
