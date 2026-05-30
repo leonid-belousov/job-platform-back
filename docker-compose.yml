@@ -10,8 +10,14 @@ services:
       - "5432:5432"
     volumes:
       - recruitment_pgdata:/var/lib/postgresql
-      
-      
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U recruitment -d recruitment_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+  
+  
   minio:
     image: quay.io/minio/minio:latest
     container_name: recruitment_minio
@@ -24,8 +30,16 @@ services:
       - "9001:9001"
     volumes:
       - recruitment_minio_data:/data
-        
-        
+    restart: always
+    
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: recruitment_mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+
 volumes:
   recruitment_pgdata:
   recruitment_minio_data:

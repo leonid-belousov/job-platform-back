@@ -1,4 +1,5 @@
-﻿using JobPlatform.BLL.CQRS.Auth.Commands.RefreshToken;
+﻿using JobPlatform.API.Extensions;
+using JobPlatform.BLL.CQRS.Auth.Commands.RefreshToken;
 using JobPlatform.BLL.CQRS.Auth.Commands.RevokeAllSessions;
 using JobPlatform.BLL.CQRS.Auth.Commands.RevokeSession;
 using JobPlatform.BLL.CQRS.Auth.Commands.SignIn;
@@ -8,6 +9,7 @@ using JobPlatform.BLL.CQRS.Auth.Queries.GetMySessions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace JobPlatform.API.Controllers;
 
@@ -22,6 +24,7 @@ public sealed class AuthController : ControllerBase
         _mediator = mediator;
     }
 
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicyName)]
     [HttpPost("sign-up")]
     public async Task<IActionResult> SignUp([FromBody] SignUpCommand command, CancellationToken cancellationToken)
     {
@@ -29,6 +32,7 @@ public sealed class AuthController : ControllerBase
         return Ok(result);
     }
 
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicyName)]
     [HttpPost("sign-in")]
     public async Task<IActionResult> SignIn([FromBody] SignInCommand command, CancellationToken cancellationToken)
     {
@@ -36,10 +40,12 @@ public sealed class AuthController : ControllerBase
         return Ok(result);
     }
     
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicyName)]
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody]RefreshTokenRequest request, CancellationToken cancellationToken)
         => Ok(await _mediator.Send(new RefreshTokenCommand(request.RefreshToken, GetClientIp()), cancellationToken));
 
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicyName)]
     [HttpPost("sign-out")]
     public async Task<IActionResult> Logout([FromBody]SignOutCommand request, CancellationToken cancellationToken)
     {

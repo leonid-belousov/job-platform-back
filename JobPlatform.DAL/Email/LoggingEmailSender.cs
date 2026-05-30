@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 
 namespace JobPlatform.DAL.Email;
 
-public sealed class LoggingEmailSender : IEmailSender
+public sealed class LoggingEmailSender
 {
     private readonly ILogger<LoggingEmailSender> _logger;
     private readonly EmailOptions _options;
@@ -22,7 +22,7 @@ public sealed class LoggingEmailSender : IEmailSender
         _logger.LogInformation(
             "Email notification stub. Enabled={Enabled}, From={From}, To={To}, Subject={Subject}, Body={Body}",
             _options.Enabled,
-            _options.From,
+            _options,
             to,
             subject,
             body);

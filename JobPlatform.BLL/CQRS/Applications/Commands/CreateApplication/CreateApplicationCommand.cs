@@ -23,13 +23,18 @@ public sealed record CreateApplicationCommand(Guid VacancyId, Guid ResumeId, str
         private readonly IAuditService _auditService;
         private readonly INotificationService _notificationService;
         private readonly IEmailSender _emailSender;
+        private readonly IEmailTemplateRenderer _emailTemplateRenderer;
 
         public CreateApplicationCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser,
-            IAuditService auditService)
+            IAuditService auditService, IEmailTemplateRenderer emailTemplateRenderer, IEmailSender emailSender,
+            INotificationService notificationService)
         {
             _db = db;
             _currentUser = currentUser;
             _auditService = auditService;
+            _emailTemplateRenderer = emailTemplateRenderer;
+            _emailSender = emailSender;
+            _notificationService = notificationService;
         }
 
         public async Task<ApplicationDto> Handle(CreateApplicationCommand request, CancellationToken cancellationToken)
@@ -90,10 +95,10 @@ public sealed record CreateApplicationCommand(Guid VacancyId, Guid ResumeId, str
                 .ToListAsync(cancellationToken);
 
             var candidateName = $"{candidate.FirstName} {candidate.LastName}".Trim();
-           
+            var emailTemplate =
+                _emailTemplateRenderer.RenderApplicationCreated(vacancy.Title, candidateName, request.CoverLetter);
             var notificationTitle = "Новый отклик на вакансию";
             var notificationMessage = $"Кандидат {candidateName} откликнулся на вакансию '{vacancy.Title}'.";
-            
             await _notificationService.CreateInternalForUsersAsync(
                 companyMembers.Select(x => x.UserId),
                 NotificationTypes.ApplicationCreated,
@@ -105,8 +110,8 @@ public sealed record CreateApplicationCommand(Guid VacancyId, Guid ResumeId, str
 
             foreach (var member in companyMembers.Where(x => !string.IsNullOrWhiteSpace(x.User.Email)))
             {
-                await _emailSender.SendAsync(member.User.Email, notificationTitle, notificationMessage,
-                    cancellationToken);
+                await _emailSender.SendAsync(member.User.Email, emailTemplate.Subject, emailTemplate.HtmlBody,
+                    emailTemplate.TextBody, cancellationToken);
             }
 
             await _db.SaveChangesAsync(cancellationToken);

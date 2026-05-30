@@ -26,13 +26,18 @@ public sealed record ChangeApplicationStatusCommand(Guid ApplicationId, string N
         private readonly IAuditService _auditService;
         private readonly INotificationService _notificationService;
         private readonly IEmailSender _emailSender;
+        private readonly IEmailTemplateRenderer _emailTemplateRenderer;
 
         public ChangeApplicationStatusCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser,
-            IAuditService auditService)
+            IAuditService auditService, INotificationService notificationService, IEmailSender emailSender,
+            IEmailTemplateRenderer emailTemplateRenderer)
         {
             _db = db;
             _currentUser = currentUser;
             _auditService = auditService;
+            _notificationService = notificationService;
+            _emailSender = emailSender;
+            _emailTemplateRenderer = emailTemplateRenderer;
         }
 
         public async Task<ApplicationDto> Handle(ChangeApplicationStatusCommand request,
@@ -77,6 +82,8 @@ public sealed record ChangeApplicationStatusCommand(Guid ApplicationId, string N
                 NewValue: new { Status = request.NewStatus, request.Comment },
                 UserId: userId), cancellationToken);
 
+            var emailTemplate = _emailTemplateRenderer.RenderApplicationStatusChanged(application.Vacancy.Title,
+                oldStatus, request.NewStatus, request.Comment);
             var notificationTitle = "Статус отклика изменен";
             var notificationMessage =
                 $"Статус отклика на вакансию '{application.Vacancy.Title}' изменен: {oldStatus} -> {request.NewStatus}.";
@@ -91,8 +98,8 @@ public sealed record ChangeApplicationStatusCommand(Guid ApplicationId, string N
 
             if (!string.IsNullOrWhiteSpace(application.CandidateProfile.User.Email))
             {
-                await _emailSender.SendAsync(application.CandidateProfile.User.Email, notificationTitle,
-                    notificationMessage, cancellationToken);
+                await _emailSender.SendAsync(application.CandidateProfile.User.Email, emailTemplate.Subject,
+                    emailTemplate.HtmlBody, emailTemplate.TextBody, cancellationToken);
             }
 
             await _db.SaveChangesAsync(cancellationToken);

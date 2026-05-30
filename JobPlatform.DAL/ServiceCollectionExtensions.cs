@@ -39,6 +39,6 @@ public static class ServiceCollectionExtensions
         services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IPasswordService, PasswordService>();
-        services.AddScoped<IEmailSender, LoggingEmailSender>();
+        services.AddScoped<IEmailSender, SmtpEmailSender>();
     }
 }

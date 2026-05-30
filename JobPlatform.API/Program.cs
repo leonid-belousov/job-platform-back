@@ -44,36 +44,16 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.CustomSchemaIds(x => x.FullName);
-
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-
-    if (File.Exists(xmlPath))
-    {
-        c.IncludeXmlComments(xmlPath);
-    }
-
-    c.EnableAnnotations();
-
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        In = ParameterLocation.Header,
-        Description = "Please enter token",
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        BearerFormat = "JWT",
-        Scheme = "bearer"
-    });
-});
+builder.Services.AddRecruitmentSwagger();
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddCurrentUser();
 builder.Services.AddBLLServiceCollections(builder.Configuration);
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddRecruitmentCors(builder.Configuration);
+builder.Services.AddRecruitmentRateLimiting(builder.Configuration);
+builder.Services.AddRecruitmentHealthChecks();
 builder.Services.AddAuthorization(options => options.AddRecruitmentPolicies());
 
 var app = builder.Build();
@@ -85,14 +65,20 @@ if (app.Environment.IsDevelopment())
 }
 app.UseExceptionHandling();
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Recruitment Platform API v1");
+    options.DisplayRequestDuration();
+});
 
 app.UseHttpsRedirection();
-
+app.UseCors(CorsExtensions.PolicyName);
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapRecruitmentHealthChecks();
 
 using (var scope = app.Services.CreateScope())
 {
