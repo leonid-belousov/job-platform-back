@@ -1,4 +1,4 @@
-﻿using JobPlatform.BLL.CQRS.Vacancies.Commands.ArchiveVacancy;
+using JobPlatform.BLL.CQRS.Vacancies.Commands.ArchiveVacancy;
 using JobPlatform.BLL.CQRS.Vacancies.Commands.CreateVacancy;
 using JobPlatform.BLL.CQRS.Vacancies.Commands.PublishVacancy;
 using JobPlatform.BLL.CQRS.Vacancies.Queries.GetMyCompanyVacancies;
@@ -43,15 +43,20 @@ public class VacanciesController : ControllerBase
     [HttpGet("search")]
     public async Task<IActionResult> Search(
         [FromQuery] string? text,
+        [FromQuery] string? country,
         [FromQuery] string? city,
+        [FromQuery] decimal? salaryFrom,
+        [FromQuery] decimal? salaryTo,
         [FromQuery] string? employmentType,
         [FromQuery] string? workFormat,
         [FromQuery] string? experienceLevel,
         [FromQuery] string? currency,
+        [FromQuery] string? sortBy = "date",
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
         => Ok(await _mediator.Send(
-            new SearchVacanciesQuery(text, city, employmentType, workFormat, experienceLevel, currency, page, pageSize),
+            new SearchVacanciesQuery(text, country, city, salaryFrom, salaryTo, employmentType, workFormat,
+                experienceLevel, currency, sortBy, page, pageSize),
             cancellationToken));
 }
