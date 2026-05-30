@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace JobPlatform.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260530161500_20260530120000_AlignCandidateProfileWithRequirements")]
-    partial class _20260530120000_AlignCandidateProfileWithRequirements
+    [Migration("20260530211254_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -67,6 +67,69 @@ namespace JobPlatform.DAL.Migrations
                     b.HasIndex("JobApplicationId");
 
                     b.ToTable("application_status_history", (string)null);
+                });
+
+            modelBuilder.Entity("JobPlatform.Core.Entities.Applications.InterviewInvitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("CandidateRespondedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Format")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("MeetingUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTimeOffset>("ScheduledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId");
+
+                    b.HasIndex("ScheduledAt");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("interview_invitations", (string)null);
                 });
 
             modelBuilder.Entity("JobPlatform.Core.Entities.Applications.JobApplication", b =>
@@ -799,6 +862,10 @@ namespace JobPlatform.DAL.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<string>("DescriptionEn")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -807,6 +874,10 @@ namespace JobPlatform.DAL.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("NameEn")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
@@ -824,6 +895,8 @@ namespace JobPlatform.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Name");
+
+                    b.HasIndex("NameEn");
 
                     b.HasIndex("Type", "Code")
                         .IsUnique();
@@ -878,6 +951,117 @@ namespace JobPlatform.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("stored_files", (string)null);
+                });
+
+            modelBuilder.Entity("JobPlatform.Core.Entities.Legal.LegalDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTimeOffset>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Type", "Language", "IsActive");
+
+                    b.HasIndex("Type", "Version", "Language")
+                        .IsUnique();
+
+                    b.ToTable("legal_documents", (string)null);
+                });
+
+            modelBuilder.Entity("JobPlatform.Core.Entities.Legal.UserLegalConsent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "DocumentType", "Version", "Language")
+                        .IsUnique();
+
+                    b.ToTable("user_legal_consents", (string)null);
                 });
 
             modelBuilder.Entity("JobPlatform.Core.Entities.Notifications.Notification", b =>
@@ -1418,11 +1602,19 @@ namespace JobPlatform.DAL.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LastLoginAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -1517,6 +1709,15 @@ namespace JobPlatform.DAL.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ExtendedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ExtensionCount")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
@@ -1584,6 +1785,55 @@ namespace JobPlatform.DAL.Migrations
                     b.ToTable("job_vacancies", (string)null);
                 });
 
+            modelBuilder.Entity("JobPlatform.Core.Entities.Vacancies.VacancyRecruiter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("AssignedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("AssignedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("RecruiterUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("VacancyId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedByUserId");
+
+                    b.HasIndex("RecruiterUserId");
+
+                    b.HasIndex("VacancyId");
+
+                    b.HasIndex("VacancyId", "RecruiterUserId")
+                        .IsUnique();
+
+                    b.ToTable("vacancy_recruiters", (string)null);
+                });
+
             modelBuilder.Entity("JobPlatform.Core.Entities.Applications.ApplicationStatusHistory", b =>
                 {
                     b.HasOne("JobPlatform.Core.Entities.Applications.JobApplication", "JobApplication")
@@ -1593,6 +1843,17 @@ namespace JobPlatform.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("JobApplication");
+                });
+
+            modelBuilder.Entity("JobPlatform.Core.Entities.Applications.InterviewInvitation", b =>
+                {
+                    b.HasOne("JobPlatform.Core.Entities.Applications.JobApplication", "Application")
+                        .WithMany("InterviewInvitations")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
                 });
 
             modelBuilder.Entity("JobPlatform.Core.Entities.Applications.JobApplication", b =>
@@ -1735,6 +1996,17 @@ namespace JobPlatform.DAL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("JobPlatform.Core.Entities.Legal.UserLegalConsent", b =>
+                {
+                    b.HasOne("JobPlatform.Core.Entities.Users.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("JobPlatform.Core.Entities.Notifications.Notification", b =>
                 {
                     b.HasOne("JobPlatform.Core.Entities.Users.User", "User")
@@ -1869,8 +2141,37 @@ namespace JobPlatform.DAL.Migrations
                     b.Navigation("Company");
                 });
 
+            modelBuilder.Entity("JobPlatform.Core.Entities.Vacancies.VacancyRecruiter", b =>
+                {
+                    b.HasOne("JobPlatform.Core.Entities.Users.User", "AssignedByUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JobPlatform.Core.Entities.Users.User", "RecruiterUser")
+                        .WithMany()
+                        .HasForeignKey("RecruiterUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JobPlatform.Core.Entities.Vacancies.JobVacancy", "Vacancy")
+                        .WithMany("Recruiters")
+                        .HasForeignKey("VacancyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AssignedByUser");
+
+                    b.Navigation("RecruiterUser");
+
+                    b.Navigation("Vacancy");
+                });
+
             modelBuilder.Entity("JobPlatform.Core.Entities.Applications.JobApplication", b =>
                 {
+                    b.Navigation("InterviewInvitations");
+
                     b.Navigation("StatusHistory");
                 });
 
@@ -1936,6 +2237,11 @@ namespace JobPlatform.DAL.Migrations
                     b.Navigation("RefreshTokens");
 
                     b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("JobPlatform.Core.Entities.Vacancies.JobVacancy", b =>
+                {
+                    b.Navigation("Recruiters");
                 });
 #pragma warning restore 612, 618
         }

@@ -15,6 +15,7 @@ public class RoleSeeder
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
+        await _db.Database.MigrateAsync(cancellationToken);
         await SeedRoleDefinitions(cancellationToken);
         await SeedPermissionDefinitions(cancellationToken);
     }
@@ -61,7 +62,8 @@ public class RoleSeeder
             new Permission { Code = "applications.read", Name = "Read applications", Module = "Applications" },
             new Permission { Code = "applications.manage", Name = "Manage applications", Module = "Applications" },
             new Permission { Code = "candidates.read", Name = "Read candidates", Module = "Candidates" },
-            new Permission { Code = "candidates.manage_own", Name = "Manage own candidate profile", Module = "Candidates" },
+            new Permission
+                { Code = "candidates.manage_own", Name = "Manage own candidate profile", Module = "Candidates" },
             new Permission { Code = "dictionaries.read", Name = "Read dictionaries", Module = "Dictionaries" },
             new Permission { Code = "dictionaries.manage", Name = "Manage dictionaries", Module = "Dictionaries" },
             new Permission { Code = "moderation.read", Name = "Read moderation queue", Module = "Moderation" },
@@ -69,7 +71,8 @@ public class RoleSeeder
             new Permission { Code = "crm.read", Name = "Read CRM", Module = "CRM" },
             new Permission { Code = "crm.manage", Name = "Manage CRM", Module = "CRM" },
             new Permission { Code = "questionnaires.read", Name = "Read questionnaires", Module = "Questionnaires" },
-            new Permission { Code = "questionnaires.manage", Name = "Manage questionnaires", Module = "Questionnaires" },
+            new Permission
+                { Code = "questionnaires.manage", Name = "Manage questionnaires", Module = "Questionnaires" },
             new Permission { Code = "analytics.read", Name = "Read analytics", Module = "Analytics" },
             new Permission { Code = "admin.full_access", Name = "Full admin access", Module = "Admin" }
         };
@@ -107,7 +110,8 @@ public class RoleSeeder
         await AssignAsync("recruiter",
             new[]
             {
-                "companies.read", "vacancies.manage", "applications.manage", "candidates.read", "dictionaries.read", "crm.read",
+                "companies.read", "vacancies.manage", "applications.manage", "candidates.read", "dictionaries.read",
+                "crm.read",
                 "crm.manage", "questionnaires.read", "questionnaires.manage", "analytics.read"
             },
             cancellationToken);
