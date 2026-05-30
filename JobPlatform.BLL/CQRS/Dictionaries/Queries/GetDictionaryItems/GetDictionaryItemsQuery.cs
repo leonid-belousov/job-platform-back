@@ -1,4 +1,4 @@
-﻿using JobPlatform.BLL.CQRS.Dictionaries.DTO;
+using JobPlatform.BLL.CQRS.Dictionaries.DTO;
 using JobPlatform.Core.Entities.Dictionaries;
 using JobPlatform.DAL.Interfaces;
 using MediatR;
@@ -33,14 +33,16 @@ public sealed record GetDictionaryItemsQuery(string Type, bool ActiveOnly = true
             if (!string.IsNullOrWhiteSpace(request.Search))
             {
                 var search = request.Search.Trim().ToLower();
-                query = query.Where(x => x.Code.ToLower().Contains(search) || x.Name.ToLower().Contains(search));
+                query = query.Where(x => x.Code.ToLower().Contains(search)
+                                         || x.Name.ToLower().Contains(search)
+                                         || (x.NameEn != null && x.NameEn.ToLower().Contains(search)));
             }
 
             return await query
                 .OrderBy(x => x.SortOrder)
                 .ThenBy(x => x.Name)
-                .Select(x =>
-                    new DictionaryItemDto(x.Id, x.Type, x.Code, x.Name, x.Description, x.SortOrder, x.IsActive))
+                .Select(x => new DictionaryItemDto(x.Id, x.Type, x.Code, x.Name, x.NameEn, x.Description,
+                    x.DescriptionEn, x.SortOrder, x.IsActive))
                 .ToArrayAsync(cancellationToken);
         }
     }
