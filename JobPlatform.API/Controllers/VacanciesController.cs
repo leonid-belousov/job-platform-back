@@ -1,6 +1,7 @@
 using JobPlatform.BLL.CQRS.Vacancies.Commands.ArchiveVacancy;
 using JobPlatform.BLL.CQRS.Vacancies.Commands.AssignRecruiter;
 using JobPlatform.BLL.CQRS.Vacancies.Commands.CreateVacancy;
+using JobPlatform.BLL.CQRS.Vacancies.Commands.ExtendVacancy;
 using JobPlatform.BLL.CQRS.Vacancies.Commands.PublishVacancy;
 using JobPlatform.BLL.CQRS.Vacancies.Commands.UnassignRecruiter;
 using JobPlatform.BLL.CQRS.Vacancies.Queries.GetMyCompanyVacancies;
@@ -32,6 +33,12 @@ public class VacanciesController : ControllerBase
     [HttpPost("{vacancyId:guid}/publish")]
     public async Task<IActionResult> Publish(Guid vacancyId, CancellationToken cancellationToken)
         => Ok(await _mediator.Send(new PublishVacancyCommand(vacancyId), cancellationToken));
+
+    [Authorize(Policy = "VacanciesManage")]
+    [HttpPost("{vacancyId:guid}/extend")]
+    public async Task<IActionResult> Extend(Guid vacancyId, [FromBody] ExtendVacancyRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(new ExtendVacancyCommand(vacancyId, request.Days), cancellationToken));
 
     [Authorize(Policy = "VacanciesManage")]
     [HttpPost("{vacancyId:guid}/archive")]
@@ -86,3 +93,4 @@ public class VacanciesController : ControllerBase
 }
 
 public sealed record AssignRecruiterRequest(Guid RecruiterUserId);
+public sealed record ExtendVacancyRequest(int Days);
