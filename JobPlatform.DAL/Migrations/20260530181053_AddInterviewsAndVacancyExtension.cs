@@ -1,12 +1,14 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace JobPlatform.DAL.Migrations
 {
+    /// <inheritdoc />
     public partial class AddInterviewsAndVacancyExtension : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<DateTimeOffset>(
@@ -50,6 +52,12 @@ namespace JobPlatform.DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_interview_invitations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_interview_invitations_job_applications_ApplicationId",
+                        column: x => x.ApplicationId,
+                        principalTable: "job_applications",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -58,22 +66,33 @@ namespace JobPlatform.DAL.Migrations
                 column: "ApplicationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_interview_invitations_Status",
-                table: "interview_invitations",
-                column: "Status");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_interview_invitations_ScheduledAt",
                 table: "interview_invitations",
                 column: "ScheduledAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_interview_invitations_Status",
+                table: "interview_invitations",
+                column: "Status");
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(name: "interview_invitations");
-            migrationBuilder.DropColumn(name: "ExpiresAt", table: "job_vacancies");
-            migrationBuilder.DropColumn(name: "ExtendedAt", table: "job_vacancies");
-            migrationBuilder.DropColumn(name: "ExtensionCount", table: "job_vacancies");
+            migrationBuilder.DropTable(
+                name: "interview_invitations");
+
+            migrationBuilder.DropColumn(
+                name: "ExpiresAt",
+                table: "job_vacancies");
+
+            migrationBuilder.DropColumn(
+                name: "ExtendedAt",
+                table: "job_vacancies");
+
+            migrationBuilder.DropColumn(
+                name: "ExtensionCount",
+                table: "job_vacancies");
         }
     }
 }
