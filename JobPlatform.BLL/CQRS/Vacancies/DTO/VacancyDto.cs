@@ -1,4 +1,4 @@
-﻿namespace JobPlatform.BLL.CQRS.Vacancies.DTO;
+namespace JobPlatform.BLL.CQRS.Vacancies.DTO;
 
 public sealed record VacancyDto(
     Guid Id,
@@ -14,4 +14,8 @@ public sealed record VacancyDto(
     string? ModerationStatus = null,
     string? ModerationComment = null,
     Guid? ModeratedByUserId = null,
-    DateTimeOffset? ModeratedAt = null);
+    DateTimeOffset? ModeratedAt = null,
+    DateTimeOffset? PublishedAt = null,
+    DateTimeOffset? ExpiresAt = null,
+    DateTimeOffset? ExtendedAt = null,
+    int ExtensionCount = 0);
