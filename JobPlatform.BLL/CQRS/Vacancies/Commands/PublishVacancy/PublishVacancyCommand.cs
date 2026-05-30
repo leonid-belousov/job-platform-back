@@ -1,4 +1,4 @@
-﻿using JobPlatform.BLL.Common.Audit;
+using JobPlatform.BLL.Common.Audit;
 using JobPlatform.BLL.Common.Interfaces;
 using JobPlatform.BLL.Common.Models;
 using JobPlatform.BLL.CQRS.Vacancies.DTO;
@@ -49,14 +49,16 @@ public sealed record PublishVacancyCommand(Guid VacancyId) : IRequest<VacancyDto
 
             if (vacancy.ModerationStatus == ModerationStatuses.Approved)
             {
+                var now = DateTimeOffset.UtcNow;
                 vacancy.Status = "Published";
-                vacancy.PublishedAt = DateTimeOffset.UtcNow;
+                vacancy.PublishedAt ??= now;
+                vacancy.ExpiresAt ??= now.AddDays(30);
                 await _auditService.AddAsync(new AuditEvent(
                     AuditActions.VacancyPublished,
                     EntityType: nameof(JobVacancy),
                     EntityId: vacancy.Id,
                     OldValue: new { Status = oldStatus, ModerationStatus = oldModerationStatus },
-                    NewValue: new { vacancy.Status, vacancy.ModerationStatus, vacancy.PublishedAt },
+                    NewValue: new { vacancy.Status, vacancy.ModerationStatus, vacancy.PublishedAt, vacancy.ExpiresAt },
                     UserId: userId), cancellationToken);
             }
             else
@@ -80,7 +82,9 @@ public sealed record PublishVacancyCommand(Guid VacancyId) : IRequest<VacancyDto
             await _db.SaveChangesAsync(cancellationToken);
 
             return new VacancyDto(vacancy.Id, vacancy.Title, vacancy.City, vacancy.EmploymentType, vacancy.WorkFormat,
-                vacancy.ExperienceLevel, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Currency, vacancy.Status, vacancy.ModerationStatus);
+                vacancy.ExperienceLevel, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Currency, vacancy.Status,
+                vacancy.ModerationStatus, vacancy.ModerationComment, vacancy.ModeratedByUserId, vacancy.ModeratedAt,
+                vacancy.PublishedAt, vacancy.ExpiresAt, vacancy.ExtendedAt, vacancy.ExtensionCount);
         }
     }
 }
