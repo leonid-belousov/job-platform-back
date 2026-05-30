@@ -49,6 +49,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+app.UseForwardedHeaders();
 app.UseExceptionHandling();
 app.UseSwagger();
 app.UseSwaggerUI(options =>
@@ -60,6 +61,7 @@ app.UseSwaggerUI(options =>
 app.UseHttpsRedirection();
 app.UseCors(CorsExtensions.PolicyName);
 app.UseRateLimiter();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
