@@ -1,4 +1,4 @@
-﻿using JobPlatform.Core.Entities.Common;
+using JobPlatform.Core.Entities.Common;
 using JobPlatform.Core.Entities.Companies;
 
 namespace JobPlatform.Core.Entities.Vacancies;
@@ -27,4 +27,5 @@ public sealed class JobVacancy : BaseEntity
     public DateTimeOffset? ModeratedAt { get; set; }
     public DateTimeOffset? PublishedAt { get; set; }
     public DateTimeOffset? ArchivedAt { get; set; }
+    public ICollection<VacancyRecruiter> Recruiters { get; set; } = [];
 }
