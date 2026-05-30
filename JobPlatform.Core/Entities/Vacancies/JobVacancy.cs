@@ -27,5 +27,8 @@ public sealed class JobVacancy : BaseEntity
     public DateTimeOffset? ModeratedAt { get; set; }
     public DateTimeOffset? PublishedAt { get; set; }
     public DateTimeOffset? ArchivedAt { get; set; }
+    public DateTimeOffset? ExpiresAt { get; set; }
+    public DateTimeOffset? ExtendedAt { get; set; }
+    public int ExtensionCount { get; set; }
     public ICollection<VacancyRecruiter> Recruiters { get; set; } = [];
 }
