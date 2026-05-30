@@ -97,7 +97,9 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<RoleSeeder>();
+    var dictionarySeeder = scope.ServiceProvider.GetRequiredService<DictionarySeeder>();
     await db.SeedAsync();
+    await dictionarySeeder.SeedAsync();
 }
 
 app.Run();

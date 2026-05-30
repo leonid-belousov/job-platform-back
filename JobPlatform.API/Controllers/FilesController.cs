@@ -21,7 +21,7 @@ public sealed class FilesController : ControllerBase
 
     [HttpPost]
     [RequestSizeLimit(10 * 1024 * 1024)]
-    public async Task<IActionResult> Upload([FromForm] IFormFile file, CancellationToken cancellationToken)
+    public async Task<IActionResult> Upload(IFormFile file, CancellationToken cancellationToken)
     {
         if (file.Length == 0)
             return BadRequest("Файл пустой.");

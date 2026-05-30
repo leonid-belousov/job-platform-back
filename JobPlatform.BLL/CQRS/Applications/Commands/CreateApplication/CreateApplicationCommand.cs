@@ -1,6 +1,11 @@
-﻿using JobPlatform.BLL.CQRS.Applications.DTO;
+﻿using JobPlatform.BLL.Common.Audit;
+using JobPlatform.BLL.Common.Interfaces;
+using JobPlatform.BLL.Common.Models;
+using JobPlatform.BLL.Common.Notifications;
+using JobPlatform.BLL.CQRS.Applications.DTO;
 using JobPlatform.Core.Entities.Applications;
 using JobPlatform.Core.Entities.Candidates;
+using JobPlatform.Core.Entities.Companies;
 using JobPlatform.Core.Entities.Vacancies;
 using JobPlatform.DAL.Interfaces;
 using MediatR;
@@ -15,17 +20,22 @@ public sealed record CreateApplicationCommand(Guid VacancyId, Guid ResumeId, str
     {
         private readonly IApplicationDbContext _db;
         private readonly ICurrentUserService _currentUser;
+        private readonly IAuditService _auditService;
+        private readonly INotificationService _notificationService;
+        private readonly IEmailSender _emailSender;
 
-        public CreateApplicationCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser)
+        public CreateApplicationCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser,
+            IAuditService auditService)
         {
             _db = db;
             _currentUser = currentUser;
+            _auditService = auditService;
         }
 
         public async Task<ApplicationDto> Handle(CreateApplicationCommand request, CancellationToken cancellationToken)
         {
             var userId = _currentUser.UserId ?? throw new UnauthorizedAccessException();
-            
+
             var candidate =
                 await _db.Set<CandidateProfile>().FirstOrDefaultAsync(x => x.UserId == userId && !x.IsDeleted,
                     cancellationToken)
@@ -65,11 +75,42 @@ public sealed record CreateApplicationCommand(Guid VacancyId, Guid ResumeId, str
             });
 
             await _db.Set<JobApplication>().AddAsync(application, cancellationToken);
-            
-            await _db.SaveChangesAsync(cancellationToken);
+
+            await _auditService.AddAsync(new AuditEvent(
+                AuditActions.ApplicationCreated,
+                EntityType: nameof(JobApplication),
+                EntityId: application.Id,
+                NewValue: new
+                    { application.VacancyId, application.CandidateProfileId, application.ResumeId, application.Status },
+                UserId: userId), cancellationToken);
+
+            var companyMembers = await _db.Set<CompanyMember>()
+                .Include(x => x.User)
+                .Where(x => x.CompanyId == vacancy.CompanyId && x.Status == "Active" && !x.IsDeleted)
+                .ToListAsync(cancellationToken);
 
             var candidateName = $"{candidate.FirstName} {candidate.LastName}".Trim();
+           
+            var notificationTitle = "Новый отклик на вакансию";
+            var notificationMessage = $"Кандидат {candidateName} откликнулся на вакансию '{vacancy.Title}'.";
             
+            await _notificationService.CreateInternalForUsersAsync(
+                companyMembers.Select(x => x.UserId),
+                NotificationTypes.ApplicationCreated,
+                notificationTitle,
+                notificationMessage,
+                nameof(JobApplication),
+                application.Id,
+                cancellationToken);
+
+            foreach (var member in companyMembers.Where(x => !string.IsNullOrWhiteSpace(x.User.Email)))
+            {
+                await _emailSender.SendAsync(member.User.Email, notificationTitle, notificationMessage,
+                    cancellationToken);
+            }
+
+            await _db.SaveChangesAsync(cancellationToken);
+
             return new ApplicationDto(application.Id, vacancy.Id, vacancy.Title, candidate.Id, candidateName, resume.Id,
                 application.Status, application.CoverLetter, application.CreatedAt);
         }

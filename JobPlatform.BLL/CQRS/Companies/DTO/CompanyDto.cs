@@ -6,5 +6,10 @@ public sealed record CompanyDto(
     string? Description,
     string? Industry,
     string? Website,
+    Guid? LogoFileId,
     string Status,
-    DateTimeOffset? VerifiedAt);
+    DateTimeOffset? VerifiedAt,
+    string? ModerationStatus = null,
+    string? ModerationComment = null,
+    Guid? ModeratedByUserId = null,
+    DateTimeOffset? ModeratedAt = null);

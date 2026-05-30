@@ -1,4 +1,7 @@
-﻿using JobPlatform.BLL.CQRS.Auth.DTO;
+﻿using JobPlatform.BLL.Common.Audit;
+using JobPlatform.BLL.Common.Interfaces;
+using JobPlatform.BLL.Common.Models;
+using JobPlatform.BLL.CQRS.Auth.DTO;
 using JobPlatform.Core.Entities.Users;
 using JobPlatform.DAL.Interfaces;
 using MediatR;
@@ -13,13 +16,15 @@ public sealed record SignInCommand(string Email, string Password) : IRequest<Aut
         private readonly IApplicationDbContext _dbContext;
         private readonly IPasswordService _passwordService;
         private readonly IJwtTokenService _jwtTokenService;
+        private readonly IAuditService _auditService;
 
         public SignInCommandHandler(IApplicationDbContext dbContext, IPasswordService passwordService,
-            IJwtTokenService jwtTokenService)
+            IJwtTokenService jwtTokenService, IAuditService auditService)
         {
             _dbContext = dbContext;
             _passwordService = passwordService;
             _jwtTokenService = jwtTokenService;
+            _auditService = auditService;
         }
 
         public async Task<AuthResponse> Handle(SignInCommand request, CancellationToken cancellationToken)
@@ -45,13 +50,20 @@ public sealed record SignInCommand(string Email, string Password) : IRequest<Aut
 
             user.LastLoginAt = DateTimeOffset.UtcNow;
             var refreshToken = _jwtTokenService.CreateRefreshToken();
-            user.RefreshTokens.Add(new RefreshToken()
+            user.RefreshTokens.Add(new Core.Entities.Users.RefreshToken()
             {
                 UserId = user.Id,
                 TokenHash = _jwtTokenService.HashRefreshToken(refreshToken),
                 ExpiresAt = DateTimeOffset.UtcNow.AddDays(30)
             });
 
+            await _auditService.AddAsync(new AuditEvent(
+                AuditActions.AuthLoginSucceeded,
+                EntityType: nameof(User),
+                EntityId: user.Id,
+                NewValue: new { user.Email },
+                UserId: user.Id), cancellationToken);
+            
             await _dbContext.SaveChangesAsync(cancellationToken);
             var roles = user.UserRoles.Select(p => p.Role.Code).ToArray();
             var permissions = user.UserRoles

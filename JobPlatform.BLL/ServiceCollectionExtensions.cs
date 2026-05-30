@@ -1,7 +1,10 @@
 ﻿using System.Reflection;
 using System.Text;
 using FluentValidation;
+using JobPlatform.BLL.Common.Audit;
 using JobPlatform.BLL.Common.Behaviors;
+using JobPlatform.BLL.Common.Interfaces;
+using JobPlatform.BLL.Common.Notifications;
 using JobPlatform.DAL;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -22,7 +25,8 @@ public static class ServiceCollectionExtensions
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
         services.AddValidatorsFromAssembly(assembly);
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-
+        services.AddScoped<IAuditService, AuditService>();
+        
         var jwtSection = configuration.GetSection("Jwt");
         var secret = jwtSection["Secret"] ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -39,6 +43,8 @@ public static class ServiceCollectionExtensions
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
                 };
             });
+        
+        services.AddScoped<INotificationService, NotificationService>();
         
     }
 }

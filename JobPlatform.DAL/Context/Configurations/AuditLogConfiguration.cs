@@ -17,6 +17,8 @@ public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         builder.Property(x => x.IpAddress).HasMaxLength(64);
         builder.Property(x => x.UserAgent).HasMaxLength(1000);
         builder.HasIndex(x => new { x.EntityType, x.EntityId });
+        builder.HasIndex(x => x.UserId);
+        builder.HasIndex(x => x.Action);
         builder.HasIndex(x => x.CreatedAt);
     }
 }

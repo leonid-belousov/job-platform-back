@@ -1,4 +1,7 @@
-﻿using JobPlatform.BLL.CQRS.Vacancies.DTO;
+﻿using JobPlatform.BLL.Common.Audit;
+using JobPlatform.BLL.Common.Interfaces;
+using JobPlatform.BLL.Common.Models;
+using JobPlatform.BLL.CQRS.Vacancies.DTO;
 using JobPlatform.Core.Entities.Companies;
 using JobPlatform.Core.Entities.Vacancies;
 using JobPlatform.DAL.Interfaces;
@@ -19,11 +22,14 @@ public record CreateVacancyCommand(
     {
         private readonly IApplicationDbContext _dbContext;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IAuditService _auditService;
 
-        public CreateVacancyCommandHandler(IApplicationDbContext dbContext, ICurrentUserService currentUserService)
+        public CreateVacancyCommandHandler(IApplicationDbContext dbContext, ICurrentUserService currentUserService,
+            IAuditService auditService)
         {
             _dbContext = dbContext;
             _currentUserService = currentUserService;
+            _auditService = auditService;
         }
 
         public async Task<VacancyDto> Handle(CreateVacancyCommand request, CancellationToken cancellationToken)
@@ -31,22 +37,31 @@ public record CreateVacancyCommand(
             var userId = _currentUserService.UserId ?? throw new UnauthorizedAccessException();
             var isCompanyMember = await _dbContext.Set<CompanyMember>().AnyAsync(
                 x => x.CompanyId == request.CompanyId && x.UserId == userId && x.Status == "Active", cancellationToken);
-            
+
             if (!isCompanyMember) throw new UnauthorizedAccessException("Нет доступа к компании.");
-            
+
             var vacancy = new JobVacancy
             {
                 CompanyId = request.CompanyId, CreatedByUserId = userId, Title = request.Title,
                 Description = request.Description, City = request.City, SalaryFrom = request.SalaryFrom,
                 SalaryTo = request.SalaryTo, Status = "Draft"
             };
-            
-            _dbContext.Set<JobVacancy>().Add(vacancy);
-            
+
+            await _dbContext.Set<JobVacancy>().AddAsync(vacancy, cancellationToken);
+
+            await _auditService.AddAsync(new AuditEvent(
+                AuditActions.VacancyCreated,
+                EntityType: nameof(JobVacancy),
+                EntityId: vacancy.Id,
+                NewValue: new
+                {
+                    vacancy.CompanyId, vacancy.Title, vacancy.City, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Status
+                },
+                UserId: userId), cancellationToken);
+
             await _dbContext.SaveChangesAsync(cancellationToken);
-            
-            return new VacancyDto(vacancy.Id, vacancy.Title, vacancy.City, vacancy.SalaryFrom, vacancy.SalaryTo,
-                vacancy.Status);
+
+            return new VacancyDto(vacancy.Id, vacancy.Title, vacancy.City, vacancy.EmploymentType, vacancy.WorkFormat, vacancy.ExperienceLevel, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Currency, vacancy.Status);
         }
     }
 }

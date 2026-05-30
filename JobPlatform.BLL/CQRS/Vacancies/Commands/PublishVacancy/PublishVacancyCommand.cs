@@ -1,5 +1,9 @@
-﻿using JobPlatform.BLL.CQRS.Vacancies.DTO;
+﻿using JobPlatform.BLL.Common.Audit;
+using JobPlatform.BLL.Common.Interfaces;
+using JobPlatform.BLL.Common.Models;
+using JobPlatform.BLL.CQRS.Vacancies.DTO;
 using JobPlatform.Core.Entities.Companies;
+using JobPlatform.Core.Entities.Moderation;
 using JobPlatform.Core.Entities.Vacancies;
 using JobPlatform.DAL.Interfaces;
 using MediatR;
@@ -13,11 +17,14 @@ public sealed record PublishVacancyCommand(Guid VacancyId) : IRequest<VacancyDto
     {
         private readonly IApplicationDbContext _db;
         private readonly ICurrentUserService _currentUser;
+        private readonly IAuditService _auditService;
 
-        public PublishVacancyCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser)
+        public PublishVacancyCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser,
+            IAuditService auditService)
         {
             _db = db;
             _currentUser = currentUser;
+            _auditService = auditService;
         }
 
         public async Task<VacancyDto> Handle(PublishVacancyCommand request, CancellationToken cancellationToken)
@@ -37,14 +44,43 @@ public sealed record PublishVacancyCommand(Guid VacancyId) : IRequest<VacancyDto
             if (string.IsNullOrWhiteSpace(vacancy.Title) || string.IsNullOrWhiteSpace(vacancy.Description))
                 throw new InvalidOperationException("Для публикации вакансии обязательны название и описание.");
 
-            vacancy.Status = "Published";
-            vacancy.PublishedAt = DateTimeOffset.UtcNow;
+            var oldStatus = vacancy.Status;
+            var oldModerationStatus = vacancy.ModerationStatus;
+
+            if (vacancy.ModerationStatus == ModerationStatuses.Approved)
+            {
+                vacancy.Status = "Published";
+                vacancy.PublishedAt = DateTimeOffset.UtcNow;
+                await _auditService.AddAsync(new AuditEvent(
+                    AuditActions.VacancyPublished,
+                    EntityType: nameof(JobVacancy),
+                    EntityId: vacancy.Id,
+                    OldValue: new { Status = oldStatus, ModerationStatus = oldModerationStatus },
+                    NewValue: new { vacancy.Status, vacancy.ModerationStatus, vacancy.PublishedAt },
+                    UserId: userId), cancellationToken);
+            }
+            else
+            {
+                vacancy.Status = "PendingModeration";
+                vacancy.ModerationStatus = ModerationStatuses.Pending;
+                vacancy.ModerationComment = null;
+                vacancy.ModeratedAt = null;
+                vacancy.ModeratedByUserId = null;
+                await _auditService.AddAsync(new AuditEvent(
+                    AuditActions.VacancySubmittedForModeration,
+                    EntityType: nameof(JobVacancy),
+                    EntityId: vacancy.Id,
+                    OldValue: new { Status = oldStatus, ModerationStatus = oldModerationStatus },
+                    NewValue: new { vacancy.Status, vacancy.ModerationStatus },
+                    UserId: userId), cancellationToken);
+            }
+
             vacancy.UpdatedAt = DateTimeOffset.UtcNow;
 
             await _db.SaveChangesAsync(cancellationToken);
 
-            return new VacancyDto(vacancy.Id, vacancy.Title, vacancy.City, vacancy.SalaryFrom, vacancy.SalaryTo,
-                vacancy.Status);
+            return new VacancyDto(vacancy.Id, vacancy.Title, vacancy.City, vacancy.EmploymentType, vacancy.WorkFormat,
+                vacancy.ExperienceLevel, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Currency, vacancy.Status);
         }
     }
 }

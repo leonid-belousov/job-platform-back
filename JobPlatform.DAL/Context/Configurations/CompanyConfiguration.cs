@@ -15,6 +15,9 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company>
         builder.Property(x => x.Industry).HasMaxLength(150);
         builder.Property(x => x.Website).HasMaxLength(500);
         builder.Property(x => x.Status).HasMaxLength(50).IsRequired();
+        builder.Property(x => x.ModerationStatus).HasMaxLength(50).IsRequired();
+        builder.Property(x => x.ModerationComment).HasMaxLength(2000);
         builder.HasIndex(x => x.Name);
+        builder.HasIndex(x => x.ModerationStatus);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using JobPlatform.DAL.Context;
+using JobPlatform.DAL.Email;
 using JobPlatform.DAL.Files;
 using JobPlatform.DAL.Interfaces;
 using JobPlatform.DAL.Security;
@@ -30,11 +31,14 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IApplicationDbContext>(p => p.GetService<AppDbContext>()!);
         services.AddScoped<RoleSeeder>();
-
+        services.AddScoped<DictionarySeeder>();
+        services.Configure<MinioStorageOptions>(configuration.GetSection("Minio"));
         services.AddScoped<IFileStorageService, MinioFileStorageService>();
-        
+        services.Configure<RefreshTokenCleanupOptions>(configuration.GetSection("RefreshTokenCleanup"));
+        services.AddHostedService<RefreshTokenCleanupHostedService>();
         services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<IEmailSender, LoggingEmailSender>();
     }
 }

@@ -11,5 +11,10 @@ public static class PermissionCodes
     public const string ApplicationsRead = "applications.read";
     public const string ApplicationsManage = "applications.manage";
     public const string CandidatesManageOwn = "candidates.manage_own";
+    public const string DictionariesRead = "dictionaries.read";
+    public const string DictionariesManage = "dictionaries.manage";
+    public const string ModerationRead = "moderation.read";
+    public const string ModerationManage = "moderation.manage";
     public const string AdminFullAccess = "admin.full_access";
 }
+

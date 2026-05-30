@@ -21,9 +21,12 @@ public class JobVacancyConfiguration : IEntityTypeConfiguration<JobVacancy>
         builder.Property(x => x.ExperienceLevel).HasMaxLength(100);
         builder.Property(x => x.Currency).HasMaxLength(10);
         builder.Property(x => x.Status).HasMaxLength(50).IsRequired();
+        builder.Property(x => x.ModerationStatus).HasMaxLength(50).IsRequired();
+        builder.Property(x => x.ModerationComment).HasMaxLength(2000);
         builder.Property(x => x.SalaryFrom).HasPrecision(18, 2);
         builder.Property(x => x.SalaryTo).HasPrecision(18, 2);
         builder.HasIndex(x => new { x.Status, x.City });
+        builder.HasIndex(x => x.ModerationStatus);
         builder.HasIndex(x => x.PublishedAt);
         builder.HasOne(x => x.Company).WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
     }

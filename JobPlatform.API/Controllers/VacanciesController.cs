@@ -41,7 +41,17 @@ public class VacanciesController : ControllerBase
         => Ok(await _mediator.Send(new GetMyCompanyVacanciesQuery(companyId), cancellationToken));
 
     [HttpGet("search")]
-    public async Task<IActionResult> Search([FromQuery] string? text, [FromQuery] string? city,
-        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken cancellationToken = default)
-        => Ok(await _mediator.Send(new SearchVacanciesQuery(text, city, page, pageSize), cancellationToken));
+    public async Task<IActionResult> Search(
+        [FromQuery] string? text,
+        [FromQuery] string? city,
+        [FromQuery] string? employmentType,
+        [FromQuery] string? workFormat,
+        [FromQuery] string? experienceLevel,
+        [FromQuery] string? currency,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+        => Ok(await _mediator.Send(
+            new SearchVacanciesQuery(text, city, employmentType, workFormat, experienceLevel, currency, page, pageSize),
+            cancellationToken));
 }

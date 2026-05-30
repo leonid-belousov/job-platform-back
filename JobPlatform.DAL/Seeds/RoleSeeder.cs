@@ -75,6 +75,10 @@ public class RoleSeeder
                 Code = "candidates.manage_own", Name = "Управление собственным профилем кандидата",
                 Module = "Candidates"
             },
+            new Permission { Code = "dictionaries.read", Name = "Просмотр справочников", Module = "Dictionaries" },
+            new Permission { Code = "dictionaries.manage", Name = "Управление справочниками", Module = "Dictionaries" },
+            new Permission { Code = "moderation.read", Name = "Просмотр очереди модерации", Module = "Moderation" },
+            new Permission { Code = "moderation.manage", Name = "Управление модерацией", Module = "Moderation" },
             new Permission { Code = "admin.full_access", Name = "Полный административный доступ", Module = "Admin" }
         };
 
@@ -95,11 +99,14 @@ public class RoleSeeder
 
         await _db.SaveChangesAsync(cancellationToken);
 
-        await AssignAsync("candidate", new[] { "candidates.manage_own", "vacancies.read", "applications.read" },
+        await AssignAsync("candidate",
+            new[] { "candidates.manage_own", "vacancies.read", "applications.read", "dictionaries.read" },
             cancellationToken);
-        await AssignAsync("employer", new[] { "companies.manage", "vacancies.manage", "applications.manage" },
+        await AssignAsync("employer",
+            new[] { "companies.manage", "vacancies.manage", "applications.manage", "dictionaries.read" },
             cancellationToken);
-        await AssignAsync("recruiter", new[] { "companies.read", "vacancies.manage", "applications.manage" },
+        await AssignAsync("recruiter",
+            new[] { "companies.read", "vacancies.manage", "applications.manage", "dictionaries.read" },
             cancellationToken);
         await AssignAsync("admin", permissionDefinitions.Select(x => x.Code).ToArray(), cancellationToken);
 

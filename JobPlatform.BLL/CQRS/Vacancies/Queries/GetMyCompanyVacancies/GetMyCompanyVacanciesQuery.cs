@@ -36,7 +36,9 @@ public sealed record GetMyCompanyVacanciesQuery(Guid CompanyId) : IRequest<IRead
                 .AsNoTracking()
                 .Where(x => x.CompanyId == request.CompanyId && !x.IsDeleted)
                 .OrderByDescending(x => x.CreatedAt)
-                .Select(x => new VacancyDto(x.Id, x.Title, x.City, x.SalaryFrom, x.SalaryTo, x.Status))
+                .Select(x => new VacancyDto(x.Id, x.Title, x.City, x.EmploymentType, x.WorkFormat, x.ExperienceLevel,
+                    x.SalaryFrom, x.SalaryTo, x.Currency, x.Status, x.ModerationStatus, x.ModerationComment,
+                    x.ModeratedByUserId, x.ModeratedAt))
                 .ToArrayAsync(cancellationToken);
         }
     }

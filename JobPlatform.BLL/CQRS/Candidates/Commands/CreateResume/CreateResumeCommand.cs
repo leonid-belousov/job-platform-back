@@ -1,4 +1,7 @@
-﻿using JobPlatform.BLL.CQRS.Candidates.DTO;
+﻿using JobPlatform.BLL.Common.Audit;
+using JobPlatform.BLL.Common.Interfaces;
+using JobPlatform.BLL.Common.Models;
+using JobPlatform.BLL.CQRS.Candidates.DTO;
 using JobPlatform.Core.Entities.Candidates;
 using JobPlatform.DAL.Interfaces;
 using MediatR;
@@ -12,11 +15,12 @@ public sealed record CreateResumeCommand(string Title, Guid? FileId, bool IsDefa
     {
         private readonly IApplicationDbContext _db;
         private readonly ICurrentUserService _currentUser;
-
-        public CreateResumeCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser)
+        private readonly IAuditService _auditService;
+        public CreateResumeCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser, IAuditService auditService)
         {
             _db = db;
             _currentUser = currentUser;
+            _auditService = auditService;
         }
 
         public async Task<ResumeDto> Handle(CreateResumeCommand request, CancellationToken cancellationToken)
@@ -49,8 +53,15 @@ public sealed record CreateResumeCommand(string Title, Guid? FileId, bool IsDefa
                 IsDefault = request.IsDefault
             };
 
-            _db.Set<Resume>().Add(resume);
+            await _db.Set<Resume>().AddAsync(resume, cancellationToken);
 
+            await _auditService.AddAsync(new AuditEvent(
+                AuditActions.ResumeCreated,
+                EntityType: nameof(Resume),
+                EntityId: resume.Id,
+                NewValue: new { resume.CandidateProfileId, resume.Title, resume.FileId, resume.Status, resume.IsDefault },
+                UserId: userId), cancellationToken);
+            
             await _db.SaveChangesAsync(cancellationToken);
 
             return new ResumeDto(resume.Id, resume.CandidateProfileId, resume.Title, resume.FileId, resume.Status,

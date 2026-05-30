@@ -14,5 +14,9 @@ public static class AuthorizationPolicies
         options.AddPolicy("VacanciesManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.VacanciesManage)));
         options.AddPolicy("ApplicationsManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.ApplicationsManage)));
         options.AddPolicy("CandidatesManageOwn", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CandidatesManageOwn)));
+        options.AddPolicy("DictionariesRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.DictionariesRead)));
+        options.AddPolicy("DictionariesManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.DictionariesManage)));
+        options.AddPolicy("ModerationRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.ModerationRead)));
+        options.AddPolicy("ModerationManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.ModerationManage)));
     }
 }

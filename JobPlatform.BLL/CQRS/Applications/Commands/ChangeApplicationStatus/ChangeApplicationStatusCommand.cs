@@ -1,4 +1,8 @@
-﻿using JobPlatform.BLL.CQRS.Applications.DTO;
+﻿using JobPlatform.BLL.Common.Audit;
+using JobPlatform.BLL.Common.Interfaces;
+using JobPlatform.BLL.Common.Models;
+using JobPlatform.BLL.Common.Notifications;
+using JobPlatform.BLL.CQRS.Applications.DTO;
 using JobPlatform.Core.Entities.Applications;
 using JobPlatform.Core.Entities.Companies;
 using JobPlatform.DAL.Interfaces;
@@ -19,18 +23,23 @@ public sealed record ChangeApplicationStatusCommand(Guid ApplicationId, string N
 
         private readonly IApplicationDbContext _db;
         private readonly ICurrentUserService _currentUser;
+        private readonly IAuditService _auditService;
+        private readonly INotificationService _notificationService;
+        private readonly IEmailSender _emailSender;
 
-        public ChangeApplicationStatusCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser)
+        public ChangeApplicationStatusCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser,
+            IAuditService auditService)
         {
             _db = db;
             _currentUser = currentUser;
+            _auditService = auditService;
         }
 
         public async Task<ApplicationDto> Handle(ChangeApplicationStatusCommand request,
             CancellationToken cancellationToken)
         {
             var userId = _currentUser.UserId ?? throw new UnauthorizedAccessException();
-            
+
             if (!AllowedStatuses.Contains(request.NewStatus))
                 throw new InvalidOperationException("Недопустимый статус отклика.");
 
@@ -40,7 +49,7 @@ public sealed record ChangeApplicationStatusCommand(Guid ApplicationId, string N
                                   .FirstOrDefaultAsync(x => x.Id == request.ApplicationId && !x.IsDeleted,
                                       cancellationToken)
                               ?? throw new InvalidOperationException("Отклик не найден.");
-            
+
 
             var hasAccess = await _db.Set<CompanyMember>().AnyAsync(
                 x => x.CompanyId == application.Vacancy.CompanyId && x.UserId == userId && x.Status == "Active",
@@ -59,6 +68,32 @@ public sealed record ChangeApplicationStatusCommand(Guid ApplicationId, string N
                 ChangedByUserId = userId,
                 Comment = request.Comment
             });
+
+            await _auditService.AddAsync(new AuditEvent(
+                AuditActions.ApplicationStatusChanged,
+                EntityType: nameof(JobApplication),
+                EntityId: application.Id,
+                OldValue: new { Status = oldStatus },
+                NewValue: new { Status = request.NewStatus, request.Comment },
+                UserId: userId), cancellationToken);
+
+            var notificationTitle = "Статус отклика изменен";
+            var notificationMessage =
+                $"Статус отклика на вакансию '{application.Vacancy.Title}' изменен: {oldStatus} -> {request.NewStatus}.";
+            await _notificationService.CreateInternalAsync(
+                application.CandidateProfile.UserId,
+                NotificationTypes.ApplicationStatusChanged,
+                notificationTitle,
+                notificationMessage,
+                nameof(JobApplication),
+                application.Id,
+                cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(application.CandidateProfile.User.Email))
+            {
+                await _emailSender.SendAsync(application.CandidateProfile.User.Email, notificationTitle,
+                    notificationMessage, cancellationToken);
+            }
 
             await _db.SaveChangesAsync(cancellationToken);
 

@@ -21,6 +21,10 @@ public sealed class JobVacancy : BaseEntity
     public decimal? SalaryTo { get; set; }
     public string? Currency { get; set; }
     public string Status { get; set; } = "Draft";
+    public string ModerationStatus { get; set; } = "Pending";
+    public string? ModerationComment { get; set; }
+    public Guid? ModeratedByUserId { get; set; }
+    public DateTimeOffset? ModeratedAt { get; set; }
     public DateTimeOffset? PublishedAt { get; set; }
     public DateTimeOffset? ArchivedAt { get; set; }
 }

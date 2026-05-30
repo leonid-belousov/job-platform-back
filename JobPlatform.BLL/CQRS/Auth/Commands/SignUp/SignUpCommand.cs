@@ -1,4 +1,7 @@
-﻿using JobPlatform.BLL.CQRS.Auth.DTO;
+﻿using JobPlatform.BLL.Common.Audit;
+using JobPlatform.BLL.Common.Interfaces;
+using JobPlatform.BLL.Common.Models;
+using JobPlatform.BLL.CQRS.Auth.DTO;
 using JobPlatform.Core.Entities.Users;
 using JobPlatform.DAL.Interfaces;
 using MediatR;
@@ -13,13 +16,15 @@ public sealed record SignUpCommand(string Email, string Password, string RoleCod
         private readonly IApplicationDbContext _dbContext;
         private readonly IPasswordService _passwordService;
         private readonly IJwtTokenService _jwtTokenService;
+        private readonly IAuditService _auditService;
 
         public SignUpCommandHandler(IApplicationDbContext dbContext, IPasswordService passwordService,
-            IJwtTokenService jwtTokenService)
+            IJwtTokenService jwtTokenService, IAuditService auditService)
         {
             _dbContext = dbContext;
             _passwordService = passwordService;
             _jwtTokenService = jwtTokenService;
+            _auditService = auditService;
         }
 
         public async Task<AuthResponse> Handle(SignUpCommand request, CancellationToken cancellationToken)
@@ -48,7 +53,7 @@ public sealed record SignUpCommand(string Email, string Password, string RoleCod
             });
 
             var refreshToken = _jwtTokenService.CreateRefreshToken();
-            user.RefreshTokens.Add(new RefreshToken()
+            user.RefreshTokens.Add(new Core.Entities.Users.RefreshToken()
             {
                 User = user,
                 TokenHash = _jwtTokenService.HashRefreshToken(refreshToken),
@@ -56,6 +61,14 @@ public sealed record SignUpCommand(string Email, string Password, string RoleCod
             });
 
             await _dbContext.Set<User>().AddAsync(user, cancellationToken);
+            
+            await _auditService.AddAsync(new AuditEvent(
+                AuditActions.AuthRegistered,
+                EntityType: nameof(User),
+                EntityId: user.Id,
+                NewValue: new { user.Email, Role = role.Code },
+                UserId: user.Id), cancellationToken);
+            
             await _dbContext.SaveChangesAsync();
 
             var accessToken = _jwtTokenService.CreateAccessToken(user, new[] { role.Code }, Array.Empty<string>());

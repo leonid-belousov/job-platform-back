@@ -1,4 +1,7 @@
-﻿using JobPlatform.BLL.CQRS.Companies.DTO;
+﻿using JobPlatform.BLL.Common.Audit;
+using JobPlatform.BLL.Common.Interfaces;
+using JobPlatform.BLL.Common.Models;
+using JobPlatform.BLL.CQRS.Companies.DTO;
 using JobPlatform.Core.Entities.Companies;
 using JobPlatform.DAL.Interfaces;
 using MediatR;
@@ -15,11 +18,13 @@ public sealed record CreateCompanyCommand(
     {
         private readonly IApplicationDbContext _db;
         private readonly ICurrentUserService _currentUser;
+        private readonly IAuditService _auditService;
 
-        public CreateCompanyCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser)
+        public CreateCompanyCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser, IAuditService auditService)
         {
             _db = db;
             _currentUser = currentUser;
+            _auditService = auditService;
         }
 
         public async Task<CompanyDto> Handle(CreateCompanyCommand request, CancellationToken cancellationToken)
@@ -47,10 +52,16 @@ public sealed record CreateCompanyCommand(
 
             await _db.Set<Company>().AddAsync(company, cancellationToken);
             
+            await _auditService.AddAsync(new AuditEvent(
+                AuditActions.CompanyCreated,
+                EntityType: nameof(Company),
+                EntityId: company.Id,
+                NewValue: new { company.Name, company.Industry, company.Status },
+                UserId: userId), cancellationToken);
+            
             await _db.SaveChangesAsync(cancellationToken);
 
-            return new CompanyDto(company.Id, company.Name, company.Description, company.Industry, company.Website,
-                company.Status, company.VerifiedAt);
+            return new CompanyDto(company.Id, company.Name, company.Description, company.Industry, company.Website, company.LogoFileId, company.Status, company.VerifiedAt);
         }
     }
 }
