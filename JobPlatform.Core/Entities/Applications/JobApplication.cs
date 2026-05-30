@@ -1,4 +1,4 @@
-﻿using JobPlatform.Core.Entities.Candidates;
+using JobPlatform.Core.Entities.Candidates;
 using JobPlatform.Core.Entities.Common;
 using JobPlatform.Core.Entities.Vacancies;
 
@@ -12,7 +12,8 @@ public sealed class JobApplication : BaseEntity
     public CandidateProfile CandidateProfile { get; set; } = null!;
     public Guid ResumeId { get; set; }
     public Resume Resume { get; set; } = null!;
-    public string Status { get; set; } = "Sent";
+    public string Status { get; set; } = ApplicationStatuses.New;
     public string? CoverLetter { get; set; }
     public ICollection<ApplicationStatusHistory> StatusHistory { get; set; } = [];
+    public ICollection<InterviewInvitation> InterviewInvitations { get; set; } = [];
 }
