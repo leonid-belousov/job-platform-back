@@ -1,4 +1,4 @@
-﻿using JobPlatform.BLL.CQRS.Applications.DTO;
+using JobPlatform.BLL.CQRS.Applications.DTO;
 using JobPlatform.Core.Entities.Applications;
 using JobPlatform.Core.Entities.Companies;
 using JobPlatform.Core.Entities.Vacancies;
@@ -37,14 +37,34 @@ public sealed record GetVacancyApplicationsQuery(Guid VacancyId) : IRequest<IRea
 
             if (!hasAccess) throw new UnauthorizedAccessException("Нет доступа к откликам этой вакансии.");
 
-            return await _db.Set<JobApplication>()
+            var applications = await _db.Set<JobApplication>()
                 .AsNoTracking()
+                .Include(x => x.Vacancy)
+                .Include(x => x.CandidateProfile)
+                .ThenInclude(x => x.User)
                 .Where(x => x.VacancyId == request.VacancyId && !x.IsDeleted)
                 .OrderByDescending(x => x.CreatedAt)
-                .Select(x => new ApplicationDto(x.Id, x.VacancyId, x.Vacancy.Title, x.CandidateProfileId,
-                    (x.CandidateProfile.FirstName + " " + x.CandidateProfile.LastName).Trim(), x.ResumeId, x.Status,
-                    x.CoverLetter, x.CreatedAt))
                 .ToArrayAsync(cancellationToken);
+
+            return applications.Select(x =>
+            {
+                var contactsVisible = ApplicationStatuses.CanSeeContacts(x.Status);
+                var candidateName = $"{x.CandidateProfile.FirstName} {x.CandidateProfile.LastName}".Trim();
+
+                return new ApplicationDto(
+                    x.Id,
+                    x.VacancyId,
+                    x.Vacancy.Title,
+                    x.CandidateProfileId,
+                    candidateName,
+                    contactsVisible ? x.CandidateProfile.User.Email : null,
+                    contactsVisible ? x.CandidateProfile.Phone : null,
+                    contactsVisible,
+                    x.ResumeId,
+                    x.Status,
+                    x.CoverLetter,
+                    x.CreatedAt);
+            }).ToArray();
         }
     }
 }

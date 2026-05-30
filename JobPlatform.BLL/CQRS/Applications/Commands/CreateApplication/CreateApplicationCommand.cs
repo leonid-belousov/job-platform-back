@@ -1,4 +1,4 @@
-﻿using JobPlatform.BLL.Common.Audit;
+using JobPlatform.BLL.Common.Audit;
 using JobPlatform.BLL.Common.Interfaces;
 using JobPlatform.BLL.Common.Models;
 using JobPlatform.BLL.Common.Notifications;
@@ -41,10 +41,9 @@ public sealed record CreateApplicationCommand(Guid VacancyId, Guid ResumeId, str
         {
             var userId = _currentUser.UserId ?? throw new UnauthorizedAccessException();
 
-            var candidate =
-                await _db.Set<CandidateProfile>().FirstOrDefaultAsync(x => x.UserId == userId && !x.IsDeleted,
-                    cancellationToken)
-                ?? throw new InvalidOperationException("Профиль кандидата не найден.");
+            var candidate = await _db.Set<CandidateProfile>().FirstOrDefaultAsync(
+                                x => x.UserId == userId && !x.IsDeleted, cancellationToken)
+                            ?? throw new InvalidOperationException("Профиль кандидата не найден.");
 
             var resume = await _db.Set<Resume>().FirstOrDefaultAsync(
                              x => x.Id == request.ResumeId && x.CandidateProfileId == candidate.Id && !x.IsDeleted,
@@ -68,13 +67,13 @@ public sealed record CreateApplicationCommand(Guid VacancyId, Guid ResumeId, str
                 CandidateProfileId = candidate.Id,
                 ResumeId = resume.Id,
                 CoverLetter = request.CoverLetter,
-                Status = "Sent"
+                Status = ApplicationStatuses.New
             };
             application.StatusHistory.Add(new ApplicationStatusHistory
             {
                 JobApplication = application,
                 OldStatus = null,
-                NewStatus = "Sent",
+                NewStatus = ApplicationStatuses.New,
                 ChangedByUserId = userId,
                 Comment = "Отклик создан кандидатом."
             });
@@ -116,8 +115,8 @@ public sealed record CreateApplicationCommand(Guid VacancyId, Guid ResumeId, str
 
             await _db.SaveChangesAsync(cancellationToken);
 
-            return new ApplicationDto(application.Id, vacancy.Id, vacancy.Title, candidate.Id, candidateName, resume.Id,
-                application.Status, application.CoverLetter, application.CreatedAt);
+            return new ApplicationDto(application.Id, vacancy.Id, vacancy.Title, candidate.Id, candidateName,
+                null, null, false, resume.Id, application.Status, application.CoverLetter, application.CreatedAt);
         }
     }
 }

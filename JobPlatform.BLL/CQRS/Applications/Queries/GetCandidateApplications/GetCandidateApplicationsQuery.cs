@@ -1,4 +1,4 @@
-﻿using JobPlatform.BLL.CQRS.Applications.DTO;
+using JobPlatform.BLL.CQRS.Applications.DTO;
 using JobPlatform.Core.Entities.Applications;
 using JobPlatform.Core.Entities.Candidates;
 using JobPlatform.DAL.Interfaces;
@@ -36,8 +36,8 @@ public sealed record GetCandidateApplicationsQuery : IRequest<IReadOnlyCollectio
                 .Where(x => x.CandidateProfileId == candidate.Id && !x.IsDeleted)
                 .OrderByDescending(x => x.CreatedAt)
                 .Select(x => new ApplicationDto(x.Id, x.VacancyId, x.Vacancy.Title, x.CandidateProfileId,
-                    (x.CandidateProfile.FirstName + " " + x.CandidateProfile.LastName).Trim(), x.ResumeId, x.Status,
-                    x.CoverLetter, x.CreatedAt))
+                    (x.CandidateProfile.FirstName + " " + x.CandidateProfile.LastName).Trim(), null, null, false,
+                    x.ResumeId, x.Status, x.CoverLetter, x.CreatedAt))
                 .ToArrayAsync(cancellationToken);
         }
     }

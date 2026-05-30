@@ -1,4 +1,4 @@
-﻿using JobPlatform.BLL.Common.Audit;
+using JobPlatform.BLL.Common.Audit;
 using JobPlatform.BLL.Common.Interfaces;
 using JobPlatform.BLL.Common.Models;
 using JobPlatform.BLL.Common.Notifications;
@@ -16,11 +16,6 @@ public sealed record ChangeApplicationStatusCommand(Guid ApplicationId, string N
 {
     public class ChangeApplicationStatusCommandHandler : IRequestHandler<ChangeApplicationStatusCommand, ApplicationDto>
     {
-        private static readonly HashSet<string> AllowedStatuses = new(StringComparer.OrdinalIgnoreCase)
-        {
-            "Sent", "Viewed", "InProgress", "Interview", "Rejected", "Accepted", "Closed"
-        };
-
         private readonly IApplicationDbContext _db;
         private readonly ICurrentUserService _currentUser;
         private readonly IAuditService _auditService;
@@ -44,17 +39,18 @@ public sealed record ChangeApplicationStatusCommand(Guid ApplicationId, string N
             CancellationToken cancellationToken)
         {
             var userId = _currentUser.UserId ?? throw new UnauthorizedAccessException();
+            var newStatus = request.NewStatus.Trim().ToLowerInvariant();
 
-            if (!AllowedStatuses.Contains(request.NewStatus))
+            if (!ApplicationStatuses.All.Contains(newStatus, StringComparer.OrdinalIgnoreCase))
                 throw new InvalidOperationException("Недопустимый статус отклика.");
 
             var application = await _db.Set<JobApplication>()
                                   .Include(x => x.Vacancy)
                                   .Include(x => x.CandidateProfile)
+                                  .ThenInclude(x => x.User)
                                   .FirstOrDefaultAsync(x => x.Id == request.ApplicationId && !x.IsDeleted,
                                       cancellationToken)
                               ?? throw new InvalidOperationException("Отклик не найден.");
-
 
             var hasAccess = await _db.Set<CompanyMember>().AnyAsync(
                 x => x.CompanyId == application.Vacancy.CompanyId && x.UserId == userId && x.Status == "Active",
@@ -63,13 +59,13 @@ public sealed record ChangeApplicationStatusCommand(Guid ApplicationId, string N
             if (!hasAccess) throw new UnauthorizedAccessException("Нет доступа к откликам этой вакансии.");
 
             var oldStatus = application.Status;
-            application.Status = request.NewStatus;
+            application.Status = newStatus;
             application.UpdatedAt = DateTimeOffset.UtcNow;
             application.StatusHistory.Add(new ApplicationStatusHistory
             {
                 JobApplicationId = application.Id,
                 OldStatus = oldStatus,
-                NewStatus = request.NewStatus,
+                NewStatus = newStatus,
                 ChangedByUserId = userId,
                 Comment = request.Comment
             });
@@ -79,14 +75,14 @@ public sealed record ChangeApplicationStatusCommand(Guid ApplicationId, string N
                 EntityType: nameof(JobApplication),
                 EntityId: application.Id,
                 OldValue: new { Status = oldStatus },
-                NewValue: new { Status = request.NewStatus, request.Comment },
+                NewValue: new { Status = newStatus, request.Comment },
                 UserId: userId), cancellationToken);
 
             var emailTemplate = _emailTemplateRenderer.RenderApplicationStatusChanged(application.Vacancy.Title,
-                oldStatus, request.NewStatus, request.Comment);
+                oldStatus, newStatus, request.Comment);
             var notificationTitle = "Статус отклика изменен";
             var notificationMessage =
-                $"Статус отклика на вакансию '{application.Vacancy.Title}' изменен: {oldStatus} -> {request.NewStatus}.";
+                $"Статус отклика на вакансию '{application.Vacancy.Title}' изменен: {oldStatus} -> {newStatus}.";
             await _notificationService.CreateInternalAsync(
                 application.CandidateProfile.UserId,
                 NotificationTypes.ApplicationStatusChanged,
@@ -106,9 +102,13 @@ public sealed record ChangeApplicationStatusCommand(Guid ApplicationId, string N
 
             var candidateName =
                 $"{application.CandidateProfile.FirstName} {application.CandidateProfile.LastName}".Trim();
+            var contactsVisible = ApplicationStatuses.CanSeeContacts(application.Status);
 
             return new ApplicationDto(application.Id, application.VacancyId, application.Vacancy.Title,
-                application.CandidateProfileId, candidateName, application.ResumeId, application.Status,
+                application.CandidateProfileId, candidateName,
+                contactsVisible ? application.CandidateProfile.User.Email : null,
+                contactsVisible ? application.CandidateProfile.Phone : null,
+                contactsVisible, application.ResumeId, application.Status,
                 application.CoverLetter, application.CreatedAt);
         }
     }
