@@ -1,4 +1,4 @@
-﻿using JobPlatform.BLL.Common.Audit;
+using JobPlatform.BLL.Common.Audit;
 using JobPlatform.BLL.Common.Interfaces;
 using JobPlatform.BLL.Common.Models;
 using JobPlatform.BLL.CQRS.Dictionaries.DTO;
@@ -13,7 +13,9 @@ public sealed record UpdateDictionaryItemCommand(
     Guid Id,
     string Code,
     string Name,
+    string? NameEn,
     string? Description,
+    string? DescriptionEn,
     int SortOrder,
     bool IsActive) : IRequest<DictionaryItemDto>
 {
@@ -43,11 +45,13 @@ public sealed record UpdateDictionaryItemCommand(
             if (duplicateExists)
                 throw new InvalidOperationException("Dictionary item with the same type and code already exists.");
 
-            var oldValue = new { item.Type, item.Code, item.Name, item.Description, item.SortOrder, item.IsActive };
+            var oldValue = new { item.Type, item.Code, item.Name, item.NameEn, item.Description, item.DescriptionEn, item.SortOrder, item.IsActive };
 
             item.Code = code;
             item.Name = request.Name.Trim();
+            item.NameEn = string.IsNullOrWhiteSpace(request.NameEn) ? null : request.NameEn.Trim();
             item.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+            item.DescriptionEn = string.IsNullOrWhiteSpace(request.DescriptionEn) ? null : request.DescriptionEn.Trim();
             item.SortOrder = request.SortOrder;
             item.IsActive = request.IsActive;
 
@@ -56,12 +60,12 @@ public sealed record UpdateDictionaryItemCommand(
                 EntityType: nameof(DictionaryItem),
                 EntityId: item.Id,
                 OldValue: oldValue,
-                NewValue: new { item.Type, item.Code, item.Name, item.Description, item.SortOrder, item.IsActive },
+                NewValue: new { item.Type, item.Code, item.Name, item.NameEn, item.Description, item.DescriptionEn, item.SortOrder, item.IsActive },
                 UserId: _currentUser.UserId), cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
 
-            return new DictionaryItemDto(item.Id, item.Type, item.Code, item.Name, item.Description, item.SortOrder,
-                item.IsActive);
+            return new DictionaryItemDto(item.Id, item.Type, item.Code, item.Name, item.NameEn, item.Description,
+                item.DescriptionEn, item.SortOrder, item.IsActive);
         }
     }
 }
