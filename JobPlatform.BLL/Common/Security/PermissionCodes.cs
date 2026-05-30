@@ -1,4 +1,4 @@
-﻿namespace JobPlatform.BLL.Common.Security;
+namespace JobPlatform.BLL.Common.Security;
 
 public static class PermissionCodes
 {
@@ -10,6 +10,7 @@ public static class PermissionCodes
     public const string VacanciesManage = "vacancies.manage";
     public const string ApplicationsRead = "applications.read";
     public const string ApplicationsManage = "applications.manage";
+    public const string CandidatesRead = "candidates.read";
     public const string CandidatesManageOwn = "candidates.manage_own";
     public const string DictionariesRead = "dictionaries.read";
     public const string DictionariesManage = "dictionaries.manage";
@@ -22,4 +23,3 @@ public static class PermissionCodes
     public const string AnalyticsRead = "analytics.read";
     public const string AdminFullAccess = "admin.full_access";
 }
-
