@@ -1,11 +1,13 @@
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace JobPlatform.DAL.Migrations
 {
+    /// <inheritdoc />
     public partial class TightenVacancyFields : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(
@@ -25,6 +27,15 @@ namespace JobPlatform.DAL.Migrations
                 oldNullable: true);
 
             migrationBuilder.AlterColumn<string>(
+                name: "Country",
+                table: "job_vacancies",
+                type: "character varying(80)",
+                maxLength: 80,
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "text");
+
+            migrationBuilder.AlterColumn<string>(
                 name: "Conditions",
                 table: "job_vacancies",
                 type: "character varying(8000)",
@@ -35,15 +46,6 @@ namespace JobPlatform.DAL.Migrations
                 oldType: "character varying(8000)",
                 oldMaxLength: 8000,
                 oldNullable: true);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Country",
-                table: "job_vacancies",
-                type: "character varying(80)",
-                maxLength: 80,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
 
             migrationBuilder.CreateIndex(
                 name: "IX_job_vacancies_Country",
@@ -56,6 +58,7 @@ namespace JobPlatform.DAL.Migrations
                 columns: new[] { "Status", "Country", "City" });
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(
@@ -77,6 +80,15 @@ namespace JobPlatform.DAL.Migrations
                 oldMaxLength: 8000);
 
             migrationBuilder.AlterColumn<string>(
+                name: "Country",
+                table: "job_vacancies",
+                type: "text",
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "character varying(80)",
+                oldMaxLength: 80);
+
+            migrationBuilder.AlterColumn<string>(
                 name: "Conditions",
                 table: "job_vacancies",
                 type: "character varying(8000)",
@@ -85,15 +97,6 @@ namespace JobPlatform.DAL.Migrations
                 oldClrType: typeof(string),
                 oldType: "character varying(8000)",
                 oldMaxLength: 8000);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Country",
-                table: "job_vacancies",
-                type: "text",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "character varying(80)",
-                oldMaxLength: 80);
 
             migrationBuilder.CreateIndex(
                 name: "IX_job_vacancies_Status_City",
