@@ -3,6 +3,7 @@ using JobPlatform.BLL.Common.Auth;
 using JobPlatform.BLL.Common.Interfaces;
 using JobPlatform.BLL.Common.Models;
 using JobPlatform.BLL.CQRS.Auth.DTO;
+using JobPlatform.Core.Entities.Legal;
 using JobPlatform.Core.Entities.Users;
 using JobPlatform.DAL.Interfaces;
 using MediatR;
@@ -11,7 +12,16 @@ using Microsoft.Extensions.Configuration;
 
 namespace JobPlatform.BLL.CQRS.Auth.Commands.SignUp;
 
-public sealed record SignUpCommand(string Email, string Password, string RoleCode, string? IpAddress = null) : IRequest<AuthResponse>
+public sealed record SignUpCommand(
+    string Email,
+    string Password,
+    string RoleCode,
+    bool AcceptTerms,
+    string TermsVersion,
+    bool AcceptPrivacyPolicy,
+    string PrivacyPolicyVersion,
+    string Language = "ru",
+    string? IpAddress = null) : IRequest<AuthResponse>
 {
     public class SignUpCommandHandler : IRequestHandler<SignUpCommand, AuthResponse>
     {
@@ -40,6 +50,18 @@ public sealed record SignUpCommand(string Email, string Password, string RoleCod
         {
             var email = request.Email.Trim().ToLowerInvariant();
             var roleCode = request.RoleCode.Trim().ToLowerInvariant();
+            var language = string.IsNullOrWhiteSpace(request.Language) ? "ru" : request.Language.Trim().ToLowerInvariant();
+            var termsVersion = request.TermsVersion.Trim();
+            var privacyPolicyVersion = request.PrivacyPolicyVersion.Trim();
+
+            if (!request.AcceptTerms || !request.AcceptPrivacyPolicy)
+            {
+                throw new InvalidOperationException("Terms and privacy policy must be accepted.");
+            }
+
+            await EnsureActiveLegalDocumentAsync("terms", termsVersion, language, cancellationToken);
+            await EnsureActiveLegalDocumentAsync("privacy_policy", privacyPolicyVersion, language, cancellationToken);
+
             if (await _dbContext.Set<User>().AnyAsync(p => p.Email == email, cancellationToken: cancellationToken))
             {
                 throw new InvalidOperationException("Пользователь с таким email уже существует");
@@ -84,12 +106,41 @@ public sealed record SignUpCommand(string Email, string Password, string RoleCod
             });
 
             await _dbContext.Set<User>().AddAsync(user, cancellationToken);
+
+            await _dbContext.Set<UserLegalConsent>().AddRangeAsync(new[]
+            {
+                new UserLegalConsent
+                {
+                    User = user,
+                    DocumentType = "terms",
+                    Version = termsVersion,
+                    Language = language,
+                    AcceptedAt = DateTimeOffset.UtcNow,
+                    IpAddress = request.IpAddress
+                },
+                new UserLegalConsent
+                {
+                    User = user,
+                    DocumentType = "privacy_policy",
+                    Version = privacyPolicyVersion,
+                    Language = language,
+                    AcceptedAt = DateTimeOffset.UtcNow,
+                    IpAddress = request.IpAddress
+                }
+            }, cancellationToken);
             
             await _auditService.AddAsync(new AuditEvent(
                 AuditActions.AuthRegistered,
                 EntityType: nameof(User),
                 EntityId: user.Id,
-                NewValue: new { user.Email, Role = role.Code, user.EmailConfirmed, user.Status },
+                NewValue: new
+                {
+                    user.Email,
+                    Role = role.Code,
+                    user.EmailConfirmed,
+                    user.Status,
+                    LegalConsents = new[] { "terms", "privacy_policy" }
+                },
                 UserId: user.Id), cancellationToken);
 
             var confirmationUrl = BuildUrl("EmailConfirmationUrl", "confirm-email", rawConfirmationToken);
@@ -108,6 +159,18 @@ public sealed record SignUpCommand(string Email, string Password, string RoleCod
             var permissions = role.RolePermissions.Select(x => x.Permission.Code).Distinct().ToArray();
             var accessToken = _jwtTokenService.CreateAccessToken(user, new[] { role.Code }, permissions);
             return new AuthResponse(accessToken, refreshToken, user.Id, user.Email);
+        }
+
+        private async Task EnsureActiveLegalDocumentAsync(string type, string version, string language,
+            CancellationToken cancellationToken)
+        {
+            var exists = await _dbContext.Set<LegalDocument>().AnyAsync(x =>
+                x.Type == type && x.Version == version && x.Language == language && x.IsActive && !x.IsDeleted,
+                cancellationToken);
+            if (!exists)
+            {
+                throw new InvalidOperationException($"Active legal document '{type}' version '{version}' was not found.");
+            }
         }
 
         private string BuildUrl(string configurationKey, string path, string token)
