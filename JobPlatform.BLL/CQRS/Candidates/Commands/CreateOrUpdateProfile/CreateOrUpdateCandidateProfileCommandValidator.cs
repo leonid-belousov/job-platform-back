@@ -54,5 +54,36 @@ public class CreateOrUpdateCandidateProfileCommandValidator : AbstractValidator<
                 .Must(x => AllowedLanguageLevels.Contains(x, StringComparer.OrdinalIgnoreCase))
                 .WithMessage("Недопустимый уровень владения языком.");
         });
+
+        RuleFor(x => x.Experiences)
+            .NotNull()
+            .Must((command, experiences) => command.HasNoExperience || experiences.Count > 0)
+            .WithMessage("Необходимо указать минимум один опыт работы либо отметить отсутствие опыта.");
+
+        RuleFor(x => x.Experiences)
+            .Must((command, experiences) => !command.HasNoExperience || experiences.Count == 0)
+            .WithMessage("Если указано отсутствие опыта, список опыта работы должен быть пустым.");
+
+        RuleForEach(x => x.Experiences).ChildRules(experience =>
+        {
+            experience.RuleFor(x => x.CompanyName).NotEmpty().MaximumLength(200);
+            experience.RuleFor(x => x.Position).NotEmpty().MaximumLength(200);
+            experience.RuleFor(x => x.Description).MaximumLength(4000);
+            experience.RuleFor(x => x.StartDate).NotEmpty();
+            experience.RuleFor(x => x)
+                .Must(x => !x.EndDate.HasValue || x.EndDate.Value >= x.StartDate)
+                .WithMessage("Дата окончания опыта не может быть раньше даты начала.");
+        });
+
+        RuleFor(x => x.Skills)
+            .NotNull()
+            .Must(x => x.Count > 0)
+            .WithMessage("Необходимо указать минимум один навык.");
+
+        RuleForEach(x => x.Skills).ChildRules(skill =>
+        {
+            skill.RuleFor(x => x.SkillCode).NotEmpty().MaximumLength(120);
+            skill.RuleFor(x => x.Name).MaximumLength(200);
+        });
     }
 }

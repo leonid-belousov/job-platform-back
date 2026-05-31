@@ -32,6 +32,7 @@ public class CandidateProfileConfiguration : IEntityTypeConfiguration<CandidateP
         builder.HasIndex(x => x.JobSearchStatus);
         builder.HasIndex(x => x.ModerationStatus);
         builder.HasIndex(x => x.DesiredPosition);
+        builder.HasIndex(x => x.IsComplete);
 
         builder.HasOne(x => x.User)
             .WithMany()
@@ -39,6 +40,11 @@ public class CandidateProfileConfiguration : IEntityTypeConfiguration<CandidateP
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(x => x.Languages)
+            .WithOne(x => x.CandidateProfile)
+            .HasForeignKey(x => x.CandidateProfileId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(x => x.Skills)
             .WithOne(x => x.CandidateProfile)
             .HasForeignKey(x => x.CandidateProfileId)
             .OnDelete(DeleteBehavior.Cascade);

@@ -36,7 +36,8 @@ public sealed record SearchCandidatesQuery(
                 .Include(x => x.User)
                 .Include(x => x.Languages.Where(language => !language.IsDeleted))
                 .Include(x => x.Experiences.Where(experience => !experience.IsDeleted))
-                .Where(x => !x.IsDeleted && x.IsVisible && x.ModerationStatus != "Rejected");
+                .Include(x => x.Skills.Where(skill => !skill.IsDeleted))
+                .Where(x => !x.IsDeleted && x.IsVisible && x.IsComplete && x.ModerationStatus != "Rejected");
 
             if (!string.IsNullOrWhiteSpace(request.Text))
             {
@@ -47,6 +48,8 @@ public sealed record SearchCandidatesQuery(
                     (x.MiddleName != null && x.MiddleName.ToLower().Contains(text)) ||
                     (x.DesiredPosition != null && x.DesiredPosition.ToLower().Contains(text)) ||
                     (x.About != null && x.About.ToLower().Contains(text)) ||
+                    x.Skills.Any(s => !s.IsDeleted && (s.SkillCode.ToLower().Contains(text) ||
+                                                       (s.Name != null && s.Name.ToLower().Contains(text)))) ||
                     x.Experiences.Any(e =>
                         e.Position.ToLower().Contains(text) ||
                         e.CompanyName.ToLower().Contains(text) ||
@@ -82,26 +85,24 @@ public sealed record SearchCandidatesQuery(
                 var level = request.ExperienceLevel.Trim().ToLower();
                 query = level switch
                 {
-                    "no_experience" => query.Where(x => !x.Experiences.Any(e => !e.IsDeleted)),
-                    _ => query.Where(x => x.Experiences.Any(e => !e.IsDeleted))
+                    "no_experience" => query.Where(x => x.HasNoExperience || !x.Experiences.Any(e => !e.IsDeleted)),
+                    _ => query.Where(x => !x.HasNoExperience && x.Experiences.Any(e => !e.IsDeleted))
                 };
             }
 
             if (!string.IsNullOrWhiteSpace(request.Skill))
             {
                 var skill = request.Skill.Trim().ToLower();
-                query = query.Where(x =>
-                    (x.About != null && x.About.ToLower().Contains(skill)) ||
-                    (x.DesiredPosition != null && x.DesiredPosition.ToLower().Contains(skill)) ||
-                    x.Experiences.Any(e =>
-                        e.Position.ToLower().Contains(skill) ||
-                        (e.Description != null && e.Description.ToLower().Contains(skill))));
+                query = query.Where(x => x.Skills.Any(s => !s.IsDeleted && s.SkillCode == skill));
             }
 
             query = request.SortBy?.Trim().ToLower() switch
             {
                 "profession" => query.OrderBy(x => x.DesiredPosition).ThenByDescending(x => x.CreatedAt),
                 "country" => query.OrderBy(x => x.CountryOfResidence).ThenByDescending(x => x.CreatedAt),
+                "relevance" when !string.IsNullOrWhiteSpace(request.Skill) => query
+                    .OrderByDescending(x => x.Skills.Any(s => !s.IsDeleted && s.SkillCode == request.Skill.Trim().ToLower()))
+                    .ThenByDescending(x => x.CreatedAt),
                 _ => query.OrderByDescending(x => x.CreatedAt)
             };
 
@@ -126,6 +127,13 @@ public sealed record SearchCandidatesQuery(
                         .OrderBy(l => l.LanguageCode)
                         .Select(l => new CandidateLanguageDto(l.Id, l.LanguageCode, l.Level))
                         .ToArray(),
+                    x.Skills
+                        .Where(s => !s.IsDeleted)
+                        .OrderBy(s => s.SkillCode)
+                        .Select(s => new CandidateSkillDto(s.Id, s.SkillCode, s.Name))
+                        .ToArray(),
+                    x.HasNoExperience,
+                    x.IsComplete,
                     false,
                     null,
                     null,

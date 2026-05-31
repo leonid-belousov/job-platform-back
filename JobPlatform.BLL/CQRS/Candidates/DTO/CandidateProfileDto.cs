@@ -5,6 +5,19 @@ public sealed record CandidateLanguageDto(
     string LanguageCode,
     string Level);
 
+public sealed record CandidateExperienceDto(
+    Guid Id,
+    string CompanyName,
+    string Position,
+    DateOnly StartDate,
+    DateOnly? EndDate,
+    string? Description);
+
+public sealed record CandidateSkillDto(
+    Guid Id,
+    string SkillCode,
+    string? Name);
+
 public sealed record CandidateProfileDto(
     Guid Id,
     string FirstName,
@@ -21,8 +34,13 @@ public sealed record CandidateProfileDto(
     string? About,
     bool IsVisible,
     string JobSearchStatus,
+    bool HasNoExperience,
+    bool IsComplete,
+    DateTimeOffset? CompletedAt,
     string ModerationStatus,
     string? ModerationComment,
     Guid? ModeratedByUserId,
     DateTimeOffset? ModeratedAt,
-    IReadOnlyCollection<CandidateLanguageDto> Languages);
+    IReadOnlyCollection<CandidateLanguageDto> Languages,
+    IReadOnlyCollection<CandidateExperienceDto> Experiences,
+    IReadOnlyCollection<CandidateSkillDto> Skills);

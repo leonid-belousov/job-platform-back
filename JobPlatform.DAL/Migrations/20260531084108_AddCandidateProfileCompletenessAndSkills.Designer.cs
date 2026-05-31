@@ -3,6 +3,7 @@ using System;
 using JobPlatform.DAL.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace JobPlatform.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260531084108_AddCandidateProfileCompletenessAndSkills")]
+    partial class AddCandidateProfileCompletenessAndSkills
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1735,14 +1738,12 @@ namespace JobPlatform.DAL.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Conditions")
-                        .IsRequired()
                         .HasMaxLength(8000)
                         .HasColumnType("character varying(8000)");
 
                     b.Property<string>("Country")
                         .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1801,7 +1802,6 @@ namespace JobPlatform.DAL.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Requirements")
-                        .IsRequired()
                         .HasMaxLength(8000)
                         .HasColumnType("character varying(8000)");
 
@@ -1838,13 +1838,11 @@ namespace JobPlatform.DAL.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.HasIndex("Country");
-
                     b.HasIndex("ModerationStatus");
 
                     b.HasIndex("PublishedAt");
 
-                    b.HasIndex("Status", "Country", "City");
+                    b.HasIndex("Status", "City");
 
                     b.ToTable("job_vacancies", (string)null);
                 });
