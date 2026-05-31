@@ -26,6 +26,8 @@ public sealed record GetMyCandidateProfileQuery : IRequest<CandidateProfileDto>
 
             var profile = await _db.Set<CandidateProfile>().AsNoTracking()
                               .Include(x => x.Languages.Where(language => !language.IsDeleted))
+                              .Include(x => x.Experiences.Where(experience => !experience.IsDeleted))
+                              .Include(x => x.Skills.Where(skill => !skill.IsDeleted))
                               .FirstOrDefaultAsync(x => x.UserId == userId && !x.IsDeleted, cancellationToken)
                           ?? throw new InvalidOperationException("Профиль кандидата не найден.");
 
@@ -45,6 +47,9 @@ public sealed record GetMyCandidateProfileQuery : IRequest<CandidateProfileDto>
                 profile.About,
                 profile.IsVisible,
                 profile.JobSearchStatus,
+                profile.HasNoExperience,
+                profile.IsComplete,
+                profile.CompletedAt,
                 profile.ModerationStatus,
                 profile.ModerationComment,
                 profile.ModeratedByUserId,
@@ -52,6 +57,15 @@ public sealed record GetMyCandidateProfileQuery : IRequest<CandidateProfileDto>
                 profile.Languages
                     .OrderBy(x => x.LanguageCode)
                     .Select(x => new CandidateLanguageDto(x.Id, x.LanguageCode, x.Level))
+                    .ToArray(),
+                profile.Experiences
+                    .OrderByDescending(x => x.StartDate)
+                    .Select(x => new CandidateExperienceDto(x.Id, x.CompanyName, x.Position, x.StartDate, x.EndDate,
+                        x.Description))
+                    .ToArray(),
+                profile.Skills
+                    .OrderBy(x => x.SkillCode)
+                    .Select(x => new CandidateSkillDto(x.Id, x.SkillCode, x.Name))
                     .ToArray());
         }
     }
