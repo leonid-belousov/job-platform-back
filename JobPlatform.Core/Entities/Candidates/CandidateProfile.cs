@@ -25,6 +25,9 @@ public sealed class CandidateProfile : BaseEntity
 
     public bool IsVisible { get; set; } = true;
     public string JobSearchStatus { get; set; } = CandidateJobSearchStatuses.ActiveSearch;
+    public bool HasNoExperience { get; set; }
+    public bool IsComplete { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
 
     public string ModerationStatus { get; set; } = "Pending";
     public string? ModerationComment { get; set; }
@@ -34,5 +37,6 @@ public sealed class CandidateProfile : BaseEntity
     public ICollection<CandidateExperience> Experiences { get; set; } = [];
     public ICollection<CandidateEducation> Educations { get; set; } = [];
     public ICollection<CandidateLanguage> Languages { get; set; } = [];
+    public ICollection<CandidateSkill> Skills { get; set; } = [];
     public ICollection<Resume> Resumes { get; set; } = [];
 }
