@@ -12,9 +12,10 @@ public class JobVacancyConfiguration : IEntityTypeConfiguration<JobVacancy>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
         builder.Property(x => x.Description).HasMaxLength(8000).IsRequired();
-        builder.Property(x => x.Requirements).HasMaxLength(8000);
+        builder.Property(x => x.Requirements).HasMaxLength(8000).IsRequired();
         builder.Property(x => x.Responsibilities).HasMaxLength(8000);
-        builder.Property(x => x.Conditions).HasMaxLength(8000);
+        builder.Property(x => x.Conditions).HasMaxLength(8000).IsRequired();
+        builder.Property(x => x.Country).HasMaxLength(80).IsRequired();
         builder.Property(x => x.City).HasMaxLength(120);
         builder.Property(x => x.EmploymentType).HasMaxLength(100);
         builder.Property(x => x.WorkFormat).HasMaxLength(100);
@@ -25,7 +26,8 @@ public class JobVacancyConfiguration : IEntityTypeConfiguration<JobVacancy>
         builder.Property(x => x.ModerationComment).HasMaxLength(2000);
         builder.Property(x => x.SalaryFrom).HasPrecision(18, 2);
         builder.Property(x => x.SalaryTo).HasPrecision(18, 2);
-        builder.HasIndex(x => new { x.Status, x.City });
+        builder.HasIndex(x => new { x.Status, x.Country, x.City });
+        builder.HasIndex(x => x.Country);
         builder.HasIndex(x => x.ModerationStatus);
         builder.HasIndex(x => x.PublishedAt);
         builder.HasOne(x => x.Company).WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
