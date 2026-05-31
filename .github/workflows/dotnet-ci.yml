@@ -5,7 +5,7 @@ on:
     branches: [ master ]
   push:
     branches:
-      - feature/application-candidate-notes
+      - feature/candidate-profile-completeness-skills
 
 jobs:
   build-and-test:
