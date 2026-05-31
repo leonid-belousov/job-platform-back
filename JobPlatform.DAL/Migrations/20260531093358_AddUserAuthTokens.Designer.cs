@@ -3,6 +3,7 @@ using System;
 using JobPlatform.DAL.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace JobPlatform.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260531093358_AddUserAuthTokens")]
+    partial class AddUserAuthTokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,46 +24,6 @@ namespace JobPlatform.DAL.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("JobPlatform.Core.Entities.Applications.ApplicationNote", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AuthorUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("JobApplicationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AuthorUserId");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("JobApplicationId");
-
-                    b.ToTable("application_notes", (string)null);
-                });
 
             modelBuilder.Entity("JobPlatform.Core.Entities.Applications.ApplicationStatusHistory", b =>
                 {
@@ -1991,25 +1954,6 @@ namespace JobPlatform.DAL.Migrations
                     b.ToTable("vacancy_recruiters", (string)null);
                 });
 
-            modelBuilder.Entity("JobPlatform.Core.Entities.Applications.ApplicationNote", b =>
-                {
-                    b.HasOne("JobPlatform.Core.Entities.Users.User", "AuthorUser")
-                        .WithMany()
-                        .HasForeignKey("AuthorUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("JobPlatform.Core.Entities.Applications.JobApplication", "JobApplication")
-                        .WithMany("Notes")
-                        .HasForeignKey("JobApplicationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AuthorUser");
-
-                    b.Navigation("JobApplication");
-                });
-
             modelBuilder.Entity("JobPlatform.Core.Entities.Applications.ApplicationStatusHistory", b =>
                 {
                     b.HasOne("JobPlatform.Core.Entities.Applications.JobApplication", "JobApplication")
@@ -2369,8 +2313,6 @@ namespace JobPlatform.DAL.Migrations
             modelBuilder.Entity("JobPlatform.Core.Entities.Applications.JobApplication", b =>
                 {
                     b.Navigation("InterviewInvitations");
-
-                    b.Navigation("Notes");
 
                     b.Navigation("StatusHistory");
                 });

@@ -9,6 +9,10 @@ public static class AuditActions
     public const string AuthSessionRevoked = "auth.session_revoked";
     public const string AuthAllSessionsRevoked = "auth.all_sessions_revoked";
     public const string AuthUserSessionsRevokedByAdmin = "auth.user_sessions_revoked_by_admin";
+    public const string AuthEmailConfirmationSent = "auth.email_confirmation_sent";
+    public const string AuthEmailConfirmed = "auth.email_confirmed";
+    public const string AuthPasswordResetRequested = "auth.password_reset_requested";
+    public const string AuthPasswordResetCompleted = "auth.password_reset_completed";
 
     public const string CompanyCreated = "company.created";
     public const string CompanyUpdated = "company.updated";

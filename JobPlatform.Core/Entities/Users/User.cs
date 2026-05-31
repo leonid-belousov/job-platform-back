@@ -15,4 +15,5 @@ public sealed class User : BaseEntity
     public DateTimeOffset? LastLoginAt { get; set; }
     public ICollection<UserRole> UserRoles { get; set; } = [];
     public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
+    public ICollection<UserAuthToken> AuthTokens { get; set; } = [];
 }
