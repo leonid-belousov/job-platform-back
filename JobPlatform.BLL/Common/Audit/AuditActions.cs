@@ -14,6 +14,8 @@ public static class AuditActions
     public const string AuthPasswordResetRequested = "auth.password_reset_requested";
     public const string AuthPasswordResetCompleted = "auth.password_reset_completed";
 
+    public const string PersonalDataAnonymized = "personal_data.anonymized";
+
     public const string CompanyCreated = "company.created";
     public const string CompanyUpdated = "company.updated";
     public const string CompanyLogoUpdated = "company.logo_updated";
