@@ -160,10 +160,11 @@ public sealed record CreateOrUpdateCandidateProfileCommand(
             return ToDto(profile);
         }
 
-        private static void ReplaceLanguages(CandidateProfile profile, IReadOnlyCollection<CandidateLanguageRequest> languages)
+        private void ReplaceLanguages(CandidateProfile profile, IReadOnlyCollection<CandidateLanguageRequest> languages)
         {
             if (profile.Languages.Count > 0)
             {
+                _dbContext.Set<CandidateLanguage>().RemoveRange(profile.Languages);
                 profile.Languages.Clear();
             }
 
@@ -178,12 +179,13 @@ public sealed record CreateOrUpdateCandidateProfileCommand(
             }
         }
 
-        private static void ReplaceExperiences(CandidateProfile profile,
+        private void ReplaceExperiences(CandidateProfile profile,
             IReadOnlyCollection<CandidateExperienceRequest> experiences,
             bool hasNoExperience)
         {
             if (profile.Experiences.Count > 0)
             {
+                _dbContext.Set<CandidateExperience>().RemoveRange(profile.Experiences);
                 profile.Experiences.Clear();
             }
 
@@ -212,6 +214,7 @@ public sealed record CreateOrUpdateCandidateProfileCommand(
         {
             if (profile.Skills.Count > 0)
             {
+                _dbContext.Set<CandidateSkill>().RemoveRange(profile.Skills);
                 profile.Skills.Clear();
             }
 
