@@ -1,5 +1,9 @@
 ﻿using JobPlatform.API.Extensions;
+using JobPlatform.BLL.CQRS.Auth.Commands.ConfirmEmail;
+using JobPlatform.BLL.CQRS.Auth.Commands.ForgotPassword;
 using JobPlatform.BLL.CQRS.Auth.Commands.RefreshToken;
+using JobPlatform.BLL.CQRS.Auth.Commands.ResendEmailConfirmation;
+using JobPlatform.BLL.CQRS.Auth.Commands.ResetPassword;
 using JobPlatform.BLL.CQRS.Auth.Commands.RevokeAllSessions;
 using JobPlatform.BLL.CQRS.Auth.Commands.RevokeSession;
 using JobPlatform.BLL.CQRS.Auth.Commands.SignIn;
@@ -28,7 +32,7 @@ public sealed class AuthController : ControllerBase
     [HttpPost("sign-up")]
     public async Task<IActionResult> SignUp([FromBody] SignUpCommand command, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await _mediator.Send(command with { IpAddress = GetClientIp() }, cancellationToken);
         return Ok(result);
     }
 
@@ -38,6 +42,42 @@ public sealed class AuthController : ControllerBase
     {
         var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);
+    }
+
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicyName)]
+    [HttpPost("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailCommand command,
+        CancellationToken cancellationToken)
+    {
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
+    }
+
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicyName)]
+    [HttpPost("resend-email-confirmation")]
+    public async Task<IActionResult> ResendEmailConfirmation([FromBody] ResendEmailConfirmationCommand command,
+        CancellationToken cancellationToken)
+    {
+        await _mediator.Send(command with { IpAddress = GetClientIp() }, cancellationToken);
+        return NoContent();
+    }
+
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicyName)]
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command,
+        CancellationToken cancellationToken)
+    {
+        await _mediator.Send(command with { IpAddress = GetClientIp() }, cancellationToken);
+        return NoContent();
+    }
+
+    [EnableRateLimiting(RateLimitingExtensions.AuthPolicyName)]
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command,
+        CancellationToken cancellationToken)
+    {
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
     }
     
     [EnableRateLimiting(RateLimitingExtensions.AuthPolicyName)]
