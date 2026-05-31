@@ -18,4 +18,9 @@ public sealed record VacancyDto(
     DateTimeOffset? PublishedAt = null,
     DateTimeOffset? ExpiresAt = null,
     DateTimeOffset? ExtendedAt = null,
-    int ExtensionCount = 0);
+    int ExtensionCount = 0,
+    string? Description = null,
+    string? Requirements = null,
+    string? Responsibilities = null,
+    string? Conditions = null,
+    string? Country = null);
