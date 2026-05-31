@@ -2,8 +2,10 @@
 using JobPlatform.BLL.CQRS.Audit.Queries.GetAuditLogById;
 using JobPlatform.BLL.CQRS.Audit.Queries.GetAuditLogs;
 using JobPlatform.BLL.CQRS.Auth.Commands.RevokeUserSessions;
+using JobPlatform.BLL.CQRS.Moderation.Commands.ApproveCandidate;
 using JobPlatform.BLL.CQRS.Moderation.Commands.ApproveCompany;
 using JobPlatform.BLL.CQRS.Moderation.Commands.ApproveVacancy;
+using JobPlatform.BLL.CQRS.Moderation.Commands.RejectCandidate;
 using JobPlatform.BLL.CQRS.Moderation.Commands.RejectCompany;
 using JobPlatform.BLL.CQRS.Moderation.Commands.RejectVacancy;
 using JobPlatform.BLL.CQRS.Moderation.Queries.GetModerationQueue;
@@ -108,6 +110,17 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> RejectVacancy(Guid vacancyId, [FromBody] ModerationDecisionRequest? request,
         CancellationToken cancellationToken)
         => Ok(await _mediator.Send(new RejectVacancyCommand(vacancyId, request?.Comment ?? string.Empty),
+            cancellationToken));
+
+    [HttpPost("candidates/{candidateProfileId:guid}/approve")]
+    public async Task<IActionResult> ApproveCandidate(Guid candidateProfileId, [FromBody] ModerationDecisionRequest? request,
+        CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(new ApproveCandidateCommand(candidateProfileId, request?.Comment), cancellationToken));
+
+    [HttpPost("candidates/{candidateProfileId:guid}/reject")]
+    public async Task<IActionResult> RejectCandidate(Guid candidateProfileId, [FromBody] ModerationDecisionRequest? request,
+        CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(new RejectCandidateCommand(candidateProfileId, request?.Comment ?? string.Empty),
             cancellationToken));
 }
 
