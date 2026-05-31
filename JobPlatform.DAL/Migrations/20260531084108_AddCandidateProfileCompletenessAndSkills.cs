@@ -1,14 +1,22 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace JobPlatform.DAL.Migrations
 {
+    /// <inheritdoc />
     public partial class AddCandidateProfileCompletenessAndSkills : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<DateTimeOffset>(
+                name: "CompletedAt",
+                table: "candidate_profiles",
+                type: "timestamp with time zone",
+                nullable: true);
+
             migrationBuilder.AddColumn<bool>(
                 name: "HasNoExperience",
                 table: "candidate_profiles",
@@ -22,12 +30,6 @@ namespace JobPlatform.DAL.Migrations
                 type: "boolean",
                 nullable: false,
                 defaultValue: false);
-
-            migrationBuilder.AddColumn<DateTimeOffset>(
-                name: "CompletedAt",
-                table: "candidate_profiles",
-                type: "timestamp with time zone",
-                nullable: true);
 
             migrationBuilder.CreateTable(
                 name: "candidate_skills",
@@ -59,24 +61,38 @@ namespace JobPlatform.DAL.Migrations
                 column: "IsComplete");
 
             migrationBuilder.CreateIndex(
-                name: "IX_candidate_skills_SkillCode",
-                table: "candidate_skills",
-                column: "SkillCode");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_candidate_skills_CandidateProfileId_SkillCode",
                 table: "candidate_skills",
                 columns: new[] { "CandidateProfileId", "SkillCode" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_candidate_skills_SkillCode",
+                table: "candidate_skills",
+                column: "SkillCode");
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(name: "candidate_skills");
-            migrationBuilder.DropIndex(name: "IX_candidate_profiles_IsComplete", table: "candidate_profiles");
-            migrationBuilder.DropColumn(name: "HasNoExperience", table: "candidate_profiles");
-            migrationBuilder.DropColumn(name: "IsComplete", table: "candidate_profiles");
-            migrationBuilder.DropColumn(name: "CompletedAt", table: "candidate_profiles");
+            migrationBuilder.DropTable(
+                name: "candidate_skills");
+
+            migrationBuilder.DropIndex(
+                name: "IX_candidate_profiles_IsComplete",
+                table: "candidate_profiles");
+
+            migrationBuilder.DropColumn(
+                name: "CompletedAt",
+                table: "candidate_profiles");
+
+            migrationBuilder.DropColumn(
+                name: "HasNoExperience",
+                table: "candidate_profiles");
+
+            migrationBuilder.DropColumn(
+                name: "IsComplete",
+                table: "candidate_profiles");
         }
     }
 }
