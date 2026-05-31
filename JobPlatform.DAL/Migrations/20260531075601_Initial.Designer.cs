@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace JobPlatform.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260530211254_Initial")]
+    [Migration("20260531075601_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -701,6 +701,9 @@ namespace JobPlatform.DAL.Migrations
                     b.Property<Guid?>("FileId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsDefault")
                         .HasColumnType("boolean");
 
@@ -777,6 +780,10 @@ namespace JobPlatform.DAL.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1682,6 +1689,10 @@ namespace JobPlatform.DAL.Migrations
                     b.Property<string>("Conditions")
                         .HasMaxLength(8000)
                         .HasColumnType("character varying(8000)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");

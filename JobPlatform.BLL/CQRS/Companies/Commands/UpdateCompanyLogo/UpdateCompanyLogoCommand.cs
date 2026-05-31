@@ -64,7 +64,7 @@ public sealed record UpdateCompanyLogoCommand(Guid CompanyId, Guid LogoFileId) :
 
             await _db.SaveChangesAsync(cancellationToken);
 
-            return new CompanyDto(company.Id, company.Name, company.Description, company.Industry, company.Website,
+            return new CompanyDto(company.Id, company.Name,company.Type, company.Description, company.Industry, company.Website,
                 company.LogoFileId, company.Status, company.VerifiedAt);
         }
     }

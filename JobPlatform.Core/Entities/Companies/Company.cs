@@ -5,6 +5,7 @@ namespace JobPlatform.Core.Entities.Companies;
 public sealed class Company : BaseEntity
 {
     public string Name { get; set; } = string.Empty;
+    public string Type { get; set; } = CompanyTypes.DirectEmployer;
     public string? Description { get; set; }
     public string? Industry { get; set; }
     public string? Website { get; set; }

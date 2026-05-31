@@ -13,6 +13,7 @@ public sealed class JobVacancy : BaseEntity
     public string? Requirements { get; set; }
     public string? Responsibilities { get; set; }
     public string? Conditions { get; set; }
+    public string Country { get; set; } = string.Empty;
     public string? City { get; set; }
     public string? EmploymentType { get; set; }
     public string? WorkFormat { get; set; }

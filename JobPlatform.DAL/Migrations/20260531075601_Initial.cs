@@ -40,6 +40,7 @@ namespace JobPlatform.DAL.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Type = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
                     Industry = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
                     Website = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
@@ -221,6 +222,7 @@ namespace JobPlatform.DAL.Migrations
                     Requirements = table.Column<string>(type: "character varying(8000)", maxLength: 8000, nullable: true),
                     Responsibilities = table.Column<string>(type: "character varying(8000)", maxLength: 8000, nullable: true),
                     Conditions = table.Column<string>(type: "character varying(8000)", maxLength: 8000, nullable: true),
+                    Country = table.Column<string>(type: "text", nullable: false),
                     City = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
                     EmploymentType = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     WorkFormat = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
@@ -697,6 +699,7 @@ namespace JobPlatform.DAL.Migrations
                     Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     FileId = table.Column<Guid>(type: "uuid", nullable: true),
                     Status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     IsDefault = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),

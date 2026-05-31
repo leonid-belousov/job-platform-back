@@ -10,6 +10,7 @@ namespace JobPlatform.BLL.CQRS.Companies.Commands.CreateCompany;
 
 public sealed record CreateCompanyCommand(
     string Name,
+    string Type,
     string? Description,
     string? Industry,
     string? Website) : IRequest<CompanyDto>
@@ -37,6 +38,7 @@ public sealed record CreateCompanyCommand(
             var company = new Company
             {
                 Name = request.Name.Trim(),
+                Type = request.Type.Trim().ToLowerInvariant(),
                 Description = request.Description,
                 Industry = request.Industry,
                 Website = request.Website,
@@ -57,12 +59,12 @@ public sealed record CreateCompanyCommand(
                 AuditActions.CompanyCreated,
                 EntityType: nameof(Company),
                 EntityId: company.Id,
-                NewValue: new { company.Name, company.Industry, company.Status },
+                NewValue: new { company.Name, company.Type, company.Industry, company.Status },
                 UserId: userId), cancellationToken);
 
             await _db.SaveChangesAsync(cancellationToken);
 
-            return new CompanyDto(company.Id, company.Name, company.Description, company.Industry, company.Website, company.LogoFileId, company.Status, company.VerifiedAt, company.ModerationStatus, company.ModerationComment, company.ModeratedByUserId, company.ModeratedAt);
+            return new CompanyDto(company.Id, company.Name, company.Type, company.Description, company.Industry, company.Website, company.LogoFileId, company.Status, company.VerifiedAt, company.ModerationStatus, company.ModerationComment, company.ModeratedByUserId, company.ModeratedAt);
         }
     }
 }

@@ -51,7 +51,7 @@ public sealed record SearchVacanciesQuery(
             if (!string.IsNullOrWhiteSpace(request.Country))
             {
                 var country = request.Country.Trim().ToLower();
-                query = query.Where(x => x.City != null && x.City.ToLower().Contains(country));
+                query = query.Where(x => x.Country.ToLower() == country);
             }
 
             if (!string.IsNullOrWhiteSpace(request.City))

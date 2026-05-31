@@ -69,7 +69,7 @@ public sealed record UpdateCompanyCommand(
                 UserId: userId), cancellationToken);
             
             await _db.SaveChangesAsync(cancellationToken);
-            return new CompanyDto(company.Id, company.Name, company.Description, company.Industry, company.Website, company.LogoFileId, company.Status, company.VerifiedAt);
+            return new CompanyDto(company.Id, company.Name,company.Type, company.Description, company.Industry, company.Website, company.LogoFileId, company.Status, company.VerifiedAt);
         }
     }
 }

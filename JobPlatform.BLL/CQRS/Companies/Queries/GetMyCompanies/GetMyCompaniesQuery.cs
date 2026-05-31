@@ -27,7 +27,7 @@ public sealed record GetMyCompaniesQuery : IRequest<IReadOnlyCollection<CompanyD
             return await _db.Set<CompanyMember>()
                 .AsNoTracking()
                 .Where(x => x.UserId == userId && x.Status == "Active" && !x.Company.IsDeleted)
-                .Select(x => new CompanyDto(x.Company.Id, x.Company.Name, x.Company.Description, x.Company.Industry, x.Company.Website, x.Company.LogoFileId, x.Company.Status, x.Company.VerifiedAt, x.Company.ModerationStatus, x.Company.ModerationComment, x.Company.ModeratedByUserId, x.Company.ModeratedAt))
+                .Select(x => new CompanyDto(x.Company.Id, x.Company.Name,x.Company.Type, x.Company.Description, x.Company.Industry, x.Company.Website, x.Company.LogoFileId, x.Company.Status, x.Company.VerifiedAt, x.Company.ModerationStatus, x.Company.ModerationComment, x.Company.ModeratedByUserId, x.Company.ModeratedAt))
                 .OrderBy(x => x.Name)
                 .ToArrayAsync(cancellationToken);
         }

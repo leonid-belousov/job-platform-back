@@ -15,6 +15,10 @@ public record CreateVacancyCommand(
     Guid CompanyId,
     string Title,
     string Description,
+    string Requirements,
+    string? Responsibilities,
+    string Conditions,
+    string Country,
     string? City,
     string? EmploymentType,
     string? WorkFormat,
@@ -46,6 +50,7 @@ public record CreateVacancyCommand(
             if (!isCompanyMember) throw new UnauthorizedAccessException("Нет доступа к компании.");
 
             await ValidateDictionaryValueAsync(DictionaryTypes.City, request.City, cancellationToken);
+            await ValidateDictionaryValueAsync(DictionaryTypes.Country, request.Country, cancellationToken);
             await ValidateDictionaryValueAsync(DictionaryTypes.EmploymentType, request.EmploymentType,
                 cancellationToken);
             await ValidateDictionaryValueAsync(DictionaryTypes.WorkFormat, request.WorkFormat, cancellationToken);
@@ -59,6 +64,10 @@ public record CreateVacancyCommand(
                 CreatedByUserId = userId,
                 Title = request.Title,
                 Description = request.Description,
+                Requirements = request.Requirements,
+                Responsibilities = request.Responsibilities,
+                Conditions = request.Conditions,
+                Country = request.Country.Trim().ToLowerInvariant(),
                 City = request.City,
                 EmploymentType = request.EmploymentType,
                 WorkFormat = request.WorkFormat,
@@ -77,7 +86,7 @@ public record CreateVacancyCommand(
                 EntityId: vacancy.Id,
                 NewValue: new
                 {
-                    vacancy.CompanyId, vacancy.Title, vacancy.City, vacancy.EmploymentType, vacancy.WorkFormat,
+                    vacancy.CompanyId, vacancy.Title, vacancy.Country, vacancy.City, vacancy.EmploymentType, vacancy.WorkFormat,
                     vacancy.ExperienceLevel, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Currency, vacancy.Status
                 },
                 UserId: userId), cancellationToken);

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JobPlatform.BLL.CQRS.Candidates.Commands.CreateResume;
 
-public sealed record CreateResumeCommand(string Title, Guid? FileId, bool IsDefault) : IRequest<ResumeDto>
+public sealed record CreateResumeCommand(string Title, Guid FileId, bool IsActive) : IRequest<ResumeDto>
 {
     public class CreateResumeCommandHandler : IRequestHandler<CreateResumeCommand, ResumeDto>
     {
@@ -31,17 +31,15 @@ public sealed record CreateResumeCommand(string Title, Guid? FileId, bool IsDefa
                     cancellationToken)
                 ?? throw new InvalidOperationException("Сначала необходимо создать профиль кандидата.");
 
-            if (request.IsDefault)
-            {
-                var currentDefaults = await _db.Set<Resume>()
-                    .Where(x => x.CandidateProfileId == profile.Id && x.IsDefault)
-                    .ToArrayAsync(cancellationToken);
+            var currentActiveResumes = await _db.Set<Resume>()
+                .Where(x => x.CandidateProfileId == profile.Id && x.IsActive && !x.IsDeleted)
+                .ToArrayAsync(cancellationToken);
 
-                foreach (var resumeItem in currentDefaults)
-                {
-                    resumeItem.IsDefault = false;
-                    resumeItem.UpdatedAt = DateTimeOffset.UtcNow;
-                }
+            foreach (var resumeItem in currentActiveResumes)
+            {
+                resumeItem.IsActive = false;
+                resumeItem.IsDefault = false;
+                resumeItem.UpdatedAt = DateTimeOffset.UtcNow;
             }
 
             var resume = new Resume
@@ -50,7 +48,8 @@ public sealed record CreateResumeCommand(string Title, Guid? FileId, bool IsDefa
                 Title = request.Title.Trim(),
                 FileId = request.FileId,
                 Status = "Published",
-                IsDefault = request.IsDefault
+                IsActive = true,
+                IsDefault = true
             };
 
             await _db.Set<Resume>().AddAsync(resume, cancellationToken);
@@ -59,7 +58,7 @@ public sealed record CreateResumeCommand(string Title, Guid? FileId, bool IsDefa
                 AuditActions.ResumeCreated,
                 EntityType: nameof(Resume),
                 EntityId: resume.Id,
-                NewValue: new { resume.CandidateProfileId, resume.Title, resume.FileId, resume.Status, resume.IsDefault },
+                NewValue: new { resume.CandidateProfileId, resume.Title, resume.FileId, resume.Status, resume.IsActive, resume.IsDefault },
                 UserId: userId), cancellationToken);
             
             await _db.SaveChangesAsync(cancellationToken);

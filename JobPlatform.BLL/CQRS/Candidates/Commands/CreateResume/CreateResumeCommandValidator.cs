@@ -7,5 +7,6 @@ public class CreateResumeCommandValidator : AbstractValidator<CreateResumeComman
     public CreateResumeCommandValidator()
     {
         RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.FileId).NotEmpty();
     }
 }

@@ -3,6 +3,7 @@
 public sealed record CompanyDto(
     Guid Id,
     string Name,
+    string Type,
     string? Description,
     string? Industry,
     string? Website,
