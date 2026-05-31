@@ -47,6 +47,7 @@ public static class ServiceCollectionExtensions
             });
         
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddHostedService<SystemNotificationReminderService>();
         
     }
 }

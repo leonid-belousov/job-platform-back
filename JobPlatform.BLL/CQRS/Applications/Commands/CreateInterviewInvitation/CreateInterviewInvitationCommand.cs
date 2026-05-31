@@ -1,3 +1,5 @@
+using JobPlatform.BLL.Common.Interfaces;
+using JobPlatform.BLL.Common.Notifications;
 using JobPlatform.BLL.CQRS.Applications.DTO;
 using JobPlatform.Core.Entities.Applications;
 using JobPlatform.Core.Entities.Companies;
@@ -19,11 +21,19 @@ public sealed record CreateInterviewInvitationCommand(
     {
         private readonly IApplicationDbContext _db;
         private readonly ICurrentUserService _currentUser;
+        private readonly INotificationService _notificationService;
+        private readonly IEmailSender _emailSender;
+        private readonly IEmailTemplateRenderer _emailTemplateRenderer;
 
-        public Handler(IApplicationDbContext db, ICurrentUserService currentUser)
+        public Handler(IApplicationDbContext db, ICurrentUserService currentUser,
+            INotificationService notificationService, IEmailSender emailSender,
+            IEmailTemplateRenderer emailTemplateRenderer)
         {
             _db = db;
             _currentUser = currentUser;
+            _notificationService = notificationService;
+            _emailSender = emailSender;
+            _emailTemplateRenderer = emailTemplateRenderer;
         }
 
         public async Task<InterviewInvitationDto> Handle(CreateInterviewInvitationCommand request,
@@ -33,6 +43,8 @@ public sealed record CreateInterviewInvitationCommand(
 
             var application = await _db.Set<JobApplication>()
                                   .Include(x => x.Vacancy)
+                                  .Include(x => x.CandidateProfile)
+                                  .ThenInclude(x => x.User)
                                   .FirstOrDefaultAsync(x => x.Id == request.ApplicationId && !x.IsDeleted,
                                       cancellationToken)
                               ?? throw new InvalidOperationException("Application not found.");
@@ -71,6 +83,31 @@ public sealed record CreateInterviewInvitationCommand(
             });
 
             await _db.Set<InterviewInvitation>().AddAsync(invitation, cancellationToken);
+
+            var notificationTitle = "Приглашение на интервью";
+            var notificationMessage = $"Вас пригласили на интервью по вакансии '{application.Vacancy.Title}'.";
+            await _notificationService.CreateInternalAsync(
+                application.CandidateProfile.UserId,
+                NotificationTypes.InterviewInvitationCreated,
+                notificationTitle,
+                notificationMessage,
+                nameof(InterviewInvitation),
+                invitation.Id,
+                cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(application.CandidateProfile.User.Email))
+            {
+                var emailTemplate = _emailTemplateRenderer.RenderInterviewInvitationCreated(
+                    application.Vacancy.Title,
+                    invitation.ScheduledAt,
+                    invitation.Format,
+                    invitation.Location,
+                    invitation.MeetingUrl,
+                    invitation.Message);
+                await _emailSender.SendAsync(application.CandidateProfile.User.Email, emailTemplate.Subject,
+                    emailTemplate.HtmlBody, emailTemplate.TextBody, cancellationToken);
+            }
+
             await _db.SaveChangesAsync(cancellationToken);
 
             return ToDto(invitation);

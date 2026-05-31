@@ -6,6 +6,7 @@ using JobPlatform.BLL.CQRS.Applications.DTO;
 using JobPlatform.Core.Entities.Applications;
 using JobPlatform.Core.Entities.Candidates;
 using JobPlatform.Core.Entities.Companies;
+using JobPlatform.Core.Entities.Users;
 using JobPlatform.Core.Entities.Vacancies;
 using JobPlatform.DAL.Interfaces;
 using MediatR;
@@ -91,7 +92,20 @@ public sealed record CreateApplicationCommand(Guid VacancyId, Guid ResumeId, str
             var companyMembers = await _db.Set<CompanyMember>()
                 .Include(x => x.User)
                 .Where(x => x.CompanyId == vacancy.CompanyId && x.Status == "Active" && !x.IsDeleted)
+                .Select(x => x.User)
                 .ToListAsync(cancellationToken);
+
+            var assignedRecruiters = await _db.Set<VacancyRecruiter>()
+                .Include(x => x.RecruiterUser)
+                .Where(x => x.VacancyId == vacancy.Id && x.Status == "active" && !x.IsDeleted)
+                .Select(x => x.RecruiterUser)
+                .ToListAsync(cancellationToken);
+
+            var recipients = companyMembers
+                .Concat(assignedRecruiters)
+                .GroupBy(x => x.Id)
+                .Select(x => x.First())
+                .ToArray();
 
             var candidateName = $"{candidate.FirstName} {candidate.LastName}".Trim();
             var emailTemplate =
@@ -99,7 +113,7 @@ public sealed record CreateApplicationCommand(Guid VacancyId, Guid ResumeId, str
             var notificationTitle = "Новый отклик на вакансию";
             var notificationMessage = $"Кандидат {candidateName} откликнулся на вакансию '{vacancy.Title}'.";
             await _notificationService.CreateInternalForUsersAsync(
-                companyMembers.Select(x => x.UserId),
+                recipients.Select(x => x.Id),
                 NotificationTypes.ApplicationCreated,
                 notificationTitle,
                 notificationMessage,
@@ -107,9 +121,9 @@ public sealed record CreateApplicationCommand(Guid VacancyId, Guid ResumeId, str
                 application.Id,
                 cancellationToken);
 
-            foreach (var member in companyMembers.Where(x => !string.IsNullOrWhiteSpace(x.User.Email)))
+            foreach (var recipient in recipients.Where(x => !string.IsNullOrWhiteSpace(x.Email)))
             {
-                await _emailSender.SendAsync(member.User.Email, emailTemplate.Subject, emailTemplate.HtmlBody,
+                await _emailSender.SendAsync(recipient.Email, emailTemplate.Subject, emailTemplate.HtmlBody,
                     emailTemplate.TextBody, cancellationToken);
             }
 

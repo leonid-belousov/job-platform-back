@@ -74,6 +74,53 @@ public sealed class EmailTemplateRenderer : IEmailTemplateRenderer
         return new EmailTemplateResult(subject, htmlBody, textBody);
     }
 
+    public EmailTemplateResult RenderInterviewInvitationCreated(string vacancyTitle, DateTimeOffset scheduledAt,
+        string format, string? location, string? meetingUrl, string? message)
+    {
+        var subject = $"Приглашение на интервью: {vacancyTitle}";
+        var textBody = $"Вас пригласили на интервью по вакансии '{vacancyTitle}'.\nДата: {scheduledAt:u}\nФормат: {format}" +
+                       (string.IsNullOrWhiteSpace(location) ? string.Empty : $"\nМесто: {location}") +
+                       (string.IsNullOrWhiteSpace(meetingUrl) ? string.Empty : $"\nСсылка: {meetingUrl}") +
+                       (string.IsNullOrWhiteSpace(message) ? string.Empty : $"\n\nСообщение:\n{message}");
+        var htmlBody = Wrap("Приглашение на интервью",
+            $"<p>Вас пригласили на интервью по вакансии <strong>{Html(vacancyTitle)}</strong>.</p>" +
+            $"<p><strong>Дата:</strong> {Html(scheduledAt.ToString("u"))}<br /><strong>Формат:</strong> {Html(format)}</p>" +
+            (string.IsNullOrWhiteSpace(location) ? string.Empty : $"<p><strong>Место:</strong> {Html(location)}</p>") +
+            (string.IsNullOrWhiteSpace(meetingUrl) ? string.Empty : $"<p><strong>Ссылка:</strong> <a href=\"{Html(meetingUrl)}\">{Html(meetingUrl)}</a></p>") +
+            (string.IsNullOrWhiteSpace(message) ? string.Empty : $"<blockquote>{Html(message).Replace("\n", "<br />")}</blockquote>"));
+        return new EmailTemplateResult(subject, htmlBody, textBody);
+    }
+
+    public EmailTemplateResult RenderInterviewInvitationResponded(string vacancyTitle, string candidateName,
+        string responseStatus, DateTimeOffset scheduledAt)
+    {
+        var subject = $"Ответ на приглашение: {vacancyTitle}";
+        var textBody = $"Кандидат {candidateName} ответил на приглашение по вакансии '{vacancyTitle}': {responseStatus}. Дата интервью: {scheduledAt:u}.";
+        var htmlBody = Wrap("Ответ на приглашение",
+            $"<p>Кандидат <strong>{Html(candidateName)}</strong> ответил на приглашение по вакансии <strong>{Html(vacancyTitle)}</strong>: <strong>{Html(responseStatus)}</strong>.</p>" +
+            $"<p><strong>Дата интервью:</strong> {Html(scheduledAt.ToString("u"))}</p>");
+        return new EmailTemplateResult(subject, htmlBody, textBody);
+    }
+
+    public EmailTemplateResult RenderNewApplicationsReminder(string vacancyTitle, int newApplicationsCount)
+    {
+        var subject = $"Новые отклики ожидают обработки: {vacancyTitle}";
+        var textBody = $"По вакансии '{vacancyTitle}' есть новые отклики без обработки: {newApplicationsCount}.";
+        var htmlBody = Wrap("Новые отклики ожидают обработки",
+            $"<p>По вакансии <strong>{Html(vacancyTitle)}</strong> есть новые отклики без обработки: <strong>{newApplicationsCount}</strong>.</p>");
+        return new EmailTemplateResult(subject, htmlBody, textBody);
+    }
+
+    public EmailTemplateResult RenderInactiveVacancyReminder(string vacancyTitle, DateTimeOffset? lastActivityAt)
+    {
+        var subject = $"Вакансия давно без активности: {vacancyTitle}";
+        var lastActivity = lastActivityAt?.ToString("u") ?? "нет активности";
+        var textBody = $"Вакансия '{vacancyTitle}' давно без активности. Последняя активность: {lastActivity}.";
+        var htmlBody = Wrap("Вакансия давно без активности",
+            $"<p>Вакансия <strong>{Html(vacancyTitle)}</strong> давно без активности.</p><p><strong>Последняя активность:</strong> {Html(lastActivity)}</p>");
+        return new EmailTemplateResult(subject, htmlBody, textBody);
+    }
+
     private static string Html(string value) => WebUtility.HtmlEncode(value);
 
     private static string Wrap(string title, string body) =>
