@@ -1,12 +1,14 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace JobPlatform.DAL.Migrations
 {
+    /// <inheritdoc />
     public partial class AddUserAuthTokens : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -53,9 +55,11 @@ namespace JobPlatform.DAL.Migrations
                 columns: new[] { "UserId", "Type", "UsedAt" });
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(name: "user_auth_tokens");
+            migrationBuilder.DropTable(
+                name: "user_auth_tokens");
         }
     }
 }
