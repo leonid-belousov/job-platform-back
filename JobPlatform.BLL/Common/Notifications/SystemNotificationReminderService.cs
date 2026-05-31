@@ -142,9 +142,12 @@ public sealed class SystemNotificationReminderService : BackgroundService
             .Where(x => !x.IsDeleted && x.VacancyId == vacancy.Id)
             .Select(x => (DateTimeOffset?)x.CreatedAt)
             .MaxAsync(cancellationToken);
-        var lastActivityAt = new[] { vacancy.UpdatedAt, vacancy.PublishedAt, lastApplicationAt }
+
+        var activityDates = new[] { vacancy.UpdatedAt, vacancy.PublishedAt, lastApplicationAt }
             .Where(x => x.HasValue)
-            .Max();
+            .Select(x => x!.Value)
+            .ToArray();
+        var lastActivityAt = activityDates.Length == 0 ? (DateTimeOffset?)null : activityDates.Max();
 
         if (lastActivityAt.HasValue && lastActivityAt.Value > now.Subtract(_inactiveVacancyAge))
         {
@@ -210,7 +213,7 @@ public sealed class SystemNotificationReminderService : BackgroundService
 
     private static int GetPositiveInt(IConfiguration configuration, string key, int defaultValue)
     {
-        var value = configuration.GetValue<int?>(key);
-        return value.GetValueOrDefault(defaultValue) > 0 ? value.Value : defaultValue;
+        var rawValue = configuration[key];
+        return int.TryParse(rawValue, out var parsedValue) && parsedValue > 0 ? parsedValue : defaultValue;
     }
 }
