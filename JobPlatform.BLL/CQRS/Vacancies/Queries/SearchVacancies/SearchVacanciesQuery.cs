@@ -43,9 +43,9 @@ public sealed record SearchVacanciesQuery(
                 query = query.Where(x =>
                     x.Title.ToLower().Contains(text) ||
                     x.Description.ToLower().Contains(text) ||
-                    (x.Requirements != null && x.Requirements.ToLower().Contains(text)) ||
+                    x.Requirements.ToLower().Contains(text) ||
                     (x.Responsibilities != null && x.Responsibilities.ToLower().Contains(text)) ||
-                    (x.Conditions != null && x.Conditions.ToLower().Contains(text)));
+                    x.Conditions.ToLower().Contains(text));
             }
 
             if (!string.IsNullOrWhiteSpace(request.Country))
@@ -93,7 +93,12 @@ public sealed record SearchVacanciesQuery(
                 .Take(request.PageSize)
                 .Select(x => new VacancyDto(x.Id, x.Title, x.City, x.EmploymentType, x.WorkFormat, x.ExperienceLevel,
                     x.SalaryFrom, x.SalaryTo, x.Currency, x.Status, x.ModerationStatus, x.ModerationComment,
-                    x.ModeratedByUserId, x.ModeratedAt))
+                    x.ModeratedByUserId, x.ModeratedAt,
+                    Description: x.Description,
+                    Requirements: x.Requirements,
+                    Responsibilities: x.Responsibilities,
+                    Conditions: x.Conditions,
+                    Country: x.Country))
                 .ToArrayAsync(cancellationToken);
 
             return new PagedResult<VacancyDto>(items, total, request.Page, request.PageSize);
