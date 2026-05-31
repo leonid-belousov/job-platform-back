@@ -7,6 +7,7 @@ using JobPlatform.BLL.CQRS.Applications.Commands.DeleteApplicationNote;
 using JobPlatform.BLL.CQRS.Applications.Commands.RespondInterviewInvitation;
 using JobPlatform.BLL.CQRS.Applications.Commands.UpdateApplicationNote;
 using JobPlatform.BLL.CQRS.Applications.Queries.ExportVacancyApplications;
+using JobPlatform.BLL.CQRS.Applications.Queries.ExportVacancyApplicationsXlsx;
 using JobPlatform.BLL.CQRS.Applications.Queries.GetApplicationInterviewInvitations;
 using JobPlatform.BLL.CQRS.Applications.Queries.GetApplicationNotes;
 using JobPlatform.BLL.CQRS.Applications.Queries.GetCandidateApplicationNotes;
@@ -52,6 +53,14 @@ public class ApplicationsController : ControllerBase
     {
         var bytes = await _mediator.Send(new ExportVacancyApplicationsQuery(vacancyId), cancellationToken);
         return File(bytes, "text/csv", $"vacancy-{vacancyId}-applications.csv");
+    }
+
+    [HttpGet("by-vacancy/{vacancyId:guid}/export.xlsx")]
+    public async Task<IActionResult> ExportByVacancyXlsx(Guid vacancyId, CancellationToken cancellationToken)
+    {
+        var bytes = await _mediator.Send(new ExportVacancyApplicationsXlsxQuery(vacancyId), cancellationToken);
+        return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"vacancy-{vacancyId}-applications.xlsx");
     }
 
     [HttpPost("{applicationId:guid}/notes")]
