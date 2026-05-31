@@ -1,5 +1,6 @@
 using JobPlatform.BLL.Common.Audit;
 using JobPlatform.BLL.Common.Auth;
+using JobPlatform.BLL.Common.Interfaces;
 using JobPlatform.BLL.Common.Models;
 using JobPlatform.Core.Entities.Users;
 using JobPlatform.DAL.Interfaces;
