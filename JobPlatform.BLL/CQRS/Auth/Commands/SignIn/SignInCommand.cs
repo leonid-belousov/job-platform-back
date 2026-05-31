@@ -48,6 +48,11 @@ public sealed record SignInCommand(string Email, string Password) : IRequest<Aut
                 throw new UnauthorizedAccessException("Неверный email или пароль");
             }
 
+            if (!user.EmailConfirmed || user.Status == UserStatus.PendingConfirmation)
+            {
+                throw new UnauthorizedAccessException("Email не подтвержден");
+            }
+
             user.LastLoginAt = DateTimeOffset.UtcNow;
             var refreshToken = _jwtTokenService.CreateRefreshToken();
             await _dbContext.Set<Core.Entities.Users.RefreshToken>().AddAsync(new Core.Entities.Users.RefreshToken
