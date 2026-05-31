@@ -15,6 +15,12 @@ public sealed record GetMyNotificationsQuery(bool? IsRead, int Page = 1, int Pag
         private readonly IApplicationDbContext _db;
         private readonly ICurrentUserService _currentUser;
 
+        public GetMyNotificationsQueryHandler(IApplicationDbContext db, ICurrentUserService currentUser)
+        {
+            _db = db;
+            _currentUser = currentUser;
+        }
+
         public async Task<PagedResult<NotificationDto>> Handle(GetMyNotificationsQuery request,
             CancellationToken cancellationToken)
         {

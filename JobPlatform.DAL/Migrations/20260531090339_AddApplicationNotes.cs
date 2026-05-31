@@ -1,12 +1,14 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace JobPlatform.DAL.Migrations
 {
+    /// <inheritdoc />
     public partial class AddApplicationNotes : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -55,9 +57,11 @@ namespace JobPlatform.DAL.Migrations
                 column: "JobApplicationId");
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(name: "application_notes");
+            migrationBuilder.DropTable(
+                name: "application_notes");
         }
     }
 }
