@@ -38,6 +38,8 @@ public static class AuditActions
     public const string UserUnblocked = "user.unblocked";
 
     public const string CandidateProfileUpdated = "candidate.profile_updated";
+    public const string CandidateApproved = "candidate.approved";
+    public const string CandidateRejected = "candidate.rejected";
     public const string ResumeCreated = "resume.created";
     public const string FileUploaded = "file.uploaded";
     
