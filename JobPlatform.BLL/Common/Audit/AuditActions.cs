@@ -17,6 +17,7 @@ public static class AuditActions
     public const string CompanyRejected = "company.rejected";
 
     public const string VacancyCreated = "vacancy.created";
+    public const string VacancyUpdated = "vacancy.updated";
     public const string VacancyPublished = "vacancy.published";
     public const string VacancyArchived = "vacancy.archived";
     public const string VacancyApproved = "vacancy.approved";
