@@ -1,0 +1,33 @@
+name: .NET CI
+
+on:
+  pull_request:
+    branches: [ master ]
+  push:
+    branches:
+      - feature/application-candidate-notes
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore API
+        run: dotnet restore JobPlatform.API/JobPlatform.API.csproj
+
+      - name: Build API
+        run: dotnet build JobPlatform.API/JobPlatform.API.csproj --configuration Release --no-restore
+
+      - name: Restore tests
+        run: dotnet restore JobPlatform.API.Tests/JobPlatform.API.Tests.csproj
+
+      - name: Test
+        run: dotnet test JobPlatform.API.Tests/JobPlatform.API.Tests.csproj --configuration Release --no-restore --verbosity normal
