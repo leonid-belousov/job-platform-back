@@ -15,7 +15,11 @@ public class RoleSeeder
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        await _db.Database.MigrateAsync(cancellationToken);
+        if (_db.Database.IsRelational())
+        {
+            await _db.Database.MigrateAsync(cancellationToken);
+        }
+
         await SeedRoleDefinitions(cancellationToken);
         await SeedPermissionDefinitions(cancellationToken);
     }
