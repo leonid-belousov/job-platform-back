@@ -10,8 +10,11 @@ public static class AuthorizationPolicies
         options.AddPolicy("AdminOnly", policy => policy.RequireRole("admin"));
         options.AddPolicy("UsersRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.UsersRead)));
         options.AddPolicy("UsersManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.UsersManage)));
+        options.AddPolicy("CompaniesRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CompaniesRead)));
         options.AddPolicy("CompaniesManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CompaniesManage)));
+        options.AddPolicy("VacanciesRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.VacanciesRead)));
         options.AddPolicy("VacanciesManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.VacanciesManage)));
+        options.AddPolicy("ApplicationsRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.ApplicationsRead)));
         options.AddPolicy("ApplicationsManage", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.ApplicationsManage)));
         options.AddPolicy("CandidatesRead", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CandidatesRead)));
         options.AddPolicy("CandidatesManageOwn", policy => policy.Requirements.Add(new PermissionRequirement(PermissionCodes.CandidatesManageOwn)));
