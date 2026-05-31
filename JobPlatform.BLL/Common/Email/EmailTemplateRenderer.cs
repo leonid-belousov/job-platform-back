@@ -50,6 +50,30 @@ public sealed class EmailTemplateRenderer : IEmailTemplateRenderer
         return new EmailTemplateResult(subject, htmlBody, textBody);
     }
 
+    public EmailTemplateResult RenderEmailConfirmation(string confirmationUrl)
+    {
+        var safeUrl = Html(confirmationUrl);
+        var subject = "Подтверждение email";
+        var textBody = $"Подтвердите email, перейдя по ссылке: {confirmationUrl}";
+        var htmlBody = Wrap(
+            "Подтвердите email",
+            $"<p>Для завершения регистрации подтвердите email.</p><p><a href=\"{safeUrl}\">Подтвердить email</a></p>");
+
+        return new EmailTemplateResult(subject, htmlBody, textBody);
+    }
+
+    public EmailTemplateResult RenderPasswordReset(string resetUrl)
+    {
+        var safeUrl = Html(resetUrl);
+        var subject = "Восстановление пароля";
+        var textBody = $"Для смены пароля перейдите по ссылке: {resetUrl}";
+        var htmlBody = Wrap(
+            "Восстановление пароля",
+            $"<p>Для смены пароля перейдите по ссылке ниже. Если вы не запрашивали восстановление, проигнорируйте письмо.</p><p><a href=\"{safeUrl}\">Сменить пароль</a></p>");
+
+        return new EmailTemplateResult(subject, htmlBody, textBody);
+    }
+
     private static string Html(string value) => WebUtility.HtmlEncode(value);
 
     private static string Wrap(string title, string body) =>
