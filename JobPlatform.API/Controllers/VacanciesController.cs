@@ -4,6 +4,7 @@ using JobPlatform.BLL.CQRS.Vacancies.Commands.CreateVacancy;
 using JobPlatform.BLL.CQRS.Vacancies.Commands.ExtendVacancy;
 using JobPlatform.BLL.CQRS.Vacancies.Commands.PublishVacancy;
 using JobPlatform.BLL.CQRS.Vacancies.Commands.UnassignRecruiter;
+using JobPlatform.BLL.CQRS.Vacancies.Commands.UpdateVacancy;
 using JobPlatform.BLL.CQRS.Vacancies.Queries.GetMyCompanyVacancies;
 using JobPlatform.BLL.CQRS.Vacancies.Queries.GetVacancyRecruiters;
 using JobPlatform.BLL.CQRS.Vacancies.Queries.SearchVacancies;
@@ -28,6 +29,12 @@ public class VacanciesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody]CreateVacancyCommand command, CancellationToken cancellationToken) =>
         Ok(await _mediator.Send(command, cancellationToken));
+
+    [Authorize(Policy = "VacanciesManage")]
+    [HttpPut("{vacancyId:guid}")]
+    public async Task<IActionResult> Update(Guid vacancyId, [FromBody] UpdateVacancyCommand command,
+        CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(command with { VacancyId = vacancyId }, cancellationToken));
 
     [Authorize(Policy = "VacanciesManage")]
     [HttpPost("{vacancyId:guid}/publish")]

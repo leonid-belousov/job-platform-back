@@ -10,9 +10,9 @@ public sealed class JobVacancy : BaseEntity
     public Guid CreatedByUserId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public string? Requirements { get; set; }
+    public string Requirements { get; set; } = string.Empty;
     public string? Responsibilities { get; set; }
-    public string? Conditions { get; set; }
+    public string Conditions { get; set; } = string.Empty;
     public string Country { get; set; } = string.Empty;
     public string? City { get; set; }
     public string? EmploymentType { get; set; }

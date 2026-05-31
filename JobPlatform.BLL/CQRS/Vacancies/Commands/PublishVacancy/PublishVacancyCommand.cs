@@ -41,8 +41,12 @@ public sealed record PublishVacancyCommand(Guid VacancyId) : IRequest<VacancyDto
 
             if (!hasAccess) throw new UnauthorizedAccessException("Нет доступа к вакансии.");
 
-            if (string.IsNullOrWhiteSpace(vacancy.Title) || string.IsNullOrWhiteSpace(vacancy.Description))
-                throw new InvalidOperationException("Для публикации вакансии обязательны название и описание.");
+            if (string.IsNullOrWhiteSpace(vacancy.Title) || string.IsNullOrWhiteSpace(vacancy.Description)
+                || string.IsNullOrWhiteSpace(vacancy.Requirements) || string.IsNullOrWhiteSpace(vacancy.Conditions)
+                || string.IsNullOrWhiteSpace(vacancy.Country))
+            {
+                throw new InvalidOperationException("Для публикации вакансии обязательны название, описание, требования, условия и страна.");
+            }
 
             var oldStatus = vacancy.Status;
             var oldModerationStatus = vacancy.ModerationStatus;
@@ -84,7 +88,8 @@ public sealed record PublishVacancyCommand(Guid VacancyId) : IRequest<VacancyDto
             return new VacancyDto(vacancy.Id, vacancy.Title, vacancy.City, vacancy.EmploymentType, vacancy.WorkFormat,
                 vacancy.ExperienceLevel, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Currency, vacancy.Status,
                 vacancy.ModerationStatus, vacancy.ModerationComment, vacancy.ModeratedByUserId, vacancy.ModeratedAt,
-                vacancy.PublishedAt, vacancy.ExpiresAt, vacancy.ExtendedAt, vacancy.ExtensionCount);
+                vacancy.PublishedAt, vacancy.ExpiresAt, vacancy.ExtendedAt, vacancy.ExtensionCount,
+                vacancy.Description, vacancy.Requirements, vacancy.Responsibilities, vacancy.Conditions, vacancy.Country);
         }
     }
 }

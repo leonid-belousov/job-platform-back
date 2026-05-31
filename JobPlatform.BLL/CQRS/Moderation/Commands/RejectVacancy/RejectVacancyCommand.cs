@@ -52,7 +52,9 @@ public sealed record RejectVacancyCommand(Guid VacancyId, string Comment) : IReq
             await _db.SaveChangesAsync(cancellationToken);
             return new VacancyDto(vacancy.Id, vacancy.Title, vacancy.City, vacancy.EmploymentType, vacancy.WorkFormat,
                 vacancy.ExperienceLevel, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Currency, vacancy.Status,
-                vacancy.ModerationStatus, vacancy.ModerationComment, vacancy.ModeratedByUserId, vacancy.ModeratedAt);
+                vacancy.ModerationStatus, vacancy.ModerationComment, vacancy.ModeratedByUserId, vacancy.ModeratedAt,
+                vacancy.PublishedAt, vacancy.ExpiresAt, vacancy.ExtendedAt, vacancy.ExtensionCount,
+                vacancy.Description, vacancy.Requirements, vacancy.Responsibilities, vacancy.Conditions, vacancy.Country);
         }
     }
 }

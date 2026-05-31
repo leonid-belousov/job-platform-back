@@ -49,32 +49,32 @@ public record CreateVacancyCommand(
 
             if (!isCompanyMember) throw new UnauthorizedAccessException("Нет доступа к компании.");
 
-            await ValidateDictionaryValueAsync(DictionaryTypes.City, request.City, cancellationToken);
             await ValidateDictionaryValueAsync(DictionaryTypes.Country, request.Country, cancellationToken);
-            await ValidateDictionaryValueAsync(DictionaryTypes.EmploymentType, request.EmploymentType,
+            await ValidateDictionaryValueAsync(DictionaryTypes.City, NormalizeOptional(request.City), cancellationToken);
+            await ValidateDictionaryValueAsync(DictionaryTypes.EmploymentType, NormalizeOptional(request.EmploymentType),
                 cancellationToken);
-            await ValidateDictionaryValueAsync(DictionaryTypes.WorkFormat, request.WorkFormat, cancellationToken);
-            await ValidateDictionaryValueAsync(DictionaryTypes.ExperienceLevel, request.ExperienceLevel,
+            await ValidateDictionaryValueAsync(DictionaryTypes.WorkFormat, NormalizeOptional(request.WorkFormat), cancellationToken);
+            await ValidateDictionaryValueAsync(DictionaryTypes.ExperienceLevel, NormalizeOptional(request.ExperienceLevel),
                 cancellationToken);
-            await ValidateDictionaryValueAsync(DictionaryTypes.Currency, request.Currency, cancellationToken);
+            await ValidateDictionaryValueAsync(DictionaryTypes.Currency, NormalizeOptional(request.Currency), cancellationToken);
 
             var vacancy = new JobVacancy
             {
                 CompanyId = request.CompanyId,
                 CreatedByUserId = userId,
-                Title = request.Title,
-                Description = request.Description,
-                Requirements = request.Requirements,
-                Responsibilities = request.Responsibilities,
-                Conditions = request.Conditions,
+                Title = request.Title.Trim(),
+                Description = request.Description.Trim(),
+                Requirements = request.Requirements.Trim(),
+                Responsibilities = string.IsNullOrWhiteSpace(request.Responsibilities) ? null : request.Responsibilities.Trim(),
+                Conditions = request.Conditions.Trim(),
                 Country = request.Country.Trim().ToLowerInvariant(),
-                City = request.City,
-                EmploymentType = request.EmploymentType,
-                WorkFormat = request.WorkFormat,
-                ExperienceLevel = request.ExperienceLevel,
+                City = NormalizeOptional(request.City),
+                EmploymentType = NormalizeOptional(request.EmploymentType),
+                WorkFormat = NormalizeOptional(request.WorkFormat),
+                ExperienceLevel = NormalizeOptional(request.ExperienceLevel),
                 SalaryFrom = request.SalaryFrom,
                 SalaryTo = request.SalaryTo,
-                Currency = request.Currency,
+                Currency = NormalizeOptional(request.Currency),
                 Status = "Draft"
             };
 
@@ -86,7 +86,8 @@ public record CreateVacancyCommand(
                 EntityId: vacancy.Id,
                 NewValue: new
                 {
-                    vacancy.CompanyId, vacancy.Title, vacancy.Country, vacancy.City, vacancy.EmploymentType, vacancy.WorkFormat,
+                    vacancy.CompanyId, vacancy.Title, vacancy.Description, vacancy.Requirements, vacancy.Responsibilities,
+                    vacancy.Conditions, vacancy.Country, vacancy.City, vacancy.EmploymentType, vacancy.WorkFormat,
                     vacancy.ExperienceLevel, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Currency, vacancy.Status
                 },
                 UserId: userId), cancellationToken);
@@ -95,8 +96,16 @@ public record CreateVacancyCommand(
 
             return new VacancyDto(vacancy.Id, vacancy.Title, vacancy.City, vacancy.EmploymentType, vacancy.WorkFormat,
                 vacancy.ExperienceLevel, vacancy.SalaryFrom, vacancy.SalaryTo, vacancy.Currency, vacancy.Status,
-                vacancy.ModerationStatus, vacancy.ModerationComment, vacancy.ModeratedByUserId, vacancy.ModeratedAt);
+                vacancy.ModerationStatus, vacancy.ModerationComment, vacancy.ModeratedByUserId, vacancy.ModeratedAt,
+                Description: vacancy.Description,
+                Requirements: vacancy.Requirements,
+                Responsibilities: vacancy.Responsibilities,
+                Conditions: vacancy.Conditions,
+                Country: vacancy.Country);
         }
+
+        private static string? NormalizeOptional(string? value)
+            => string.IsNullOrWhiteSpace(value) ? null : value.Trim().ToLowerInvariant();
 
         private async Task ValidateDictionaryValueAsync(string type, string? code, CancellationToken cancellationToken)
         {
