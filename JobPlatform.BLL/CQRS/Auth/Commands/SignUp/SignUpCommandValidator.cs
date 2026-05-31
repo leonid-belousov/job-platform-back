@@ -24,5 +24,23 @@ public class SignUpCommandValidator : AbstractValidator<SignUpCommand>
             .NotEmpty().WithMessage("Роль обязательна.")
             .Must(x => AllowedRoles.Contains(x, StringComparer.OrdinalIgnoreCase))
             .WithMessage("Регистрация разрешена только для ролей candidate, employer или recruiter.");
+
+        RuleFor(x => x.AcceptTerms)
+            .Equal(true)
+            .WithMessage("Необходимо принять пользовательское соглашение.");
+        RuleFor(x => x.TermsVersion)
+            .NotEmpty()
+            .MaximumLength(40);
+
+        RuleFor(x => x.AcceptPrivacyPolicy)
+            .Equal(true)
+            .WithMessage("Необходимо принять политику конфиденциальности.");
+        RuleFor(x => x.PrivacyPolicyVersion)
+            .NotEmpty()
+            .MaximumLength(40);
+
+        RuleFor(x => x.Language)
+            .NotEmpty()
+            .MaximumLength(10);
     }
 }
