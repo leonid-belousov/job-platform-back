@@ -1,5 +1,6 @@
 ﻿using JobPlatform.BLL.Common.Models;
 using JobPlatform.BLL.CQRS.Moderation.DTO;
+using JobPlatform.Core.Entities.Candidates;
 using JobPlatform.Core.Entities.Companies;
 using JobPlatform.Core.Entities.Vacancies;
 using JobPlatform.DAL.Interfaces;
@@ -28,15 +29,18 @@ public sealed record GetModerationQueueQuery(
         public async Task<PagedResult<ModerationQueueItemDto>> Handle(GetModerationQueueQuery request,
             CancellationToken cancellationToken)
         {
+            var entityType = request.EntityType?.Trim().ToLowerInvariant();
+            var moderationStatus = request.ModerationStatus?.Trim();
+            var search = request.Search?.Trim().ToLowerInvariant();
             var items = new List<ModerationQueueItemDto>();
 
-            if (string.IsNullOrWhiteSpace(request.EntityType) || request.EntityType == "company")
+            if (string.IsNullOrWhiteSpace(entityType) || entityType == "company")
             {
                 var companies = _db.Set<Company>().AsNoTracking().Where(x => !x.IsDeleted);
-                if (!string.IsNullOrWhiteSpace(request.ModerationStatus))
-                    companies = companies.Where(x => x.ModerationStatus == request.ModerationStatus);
-                if (!string.IsNullOrWhiteSpace(request.Search))
-                    companies = companies.Where(x => x.Name.ToLower().Contains(request.Search.ToLower()));
+                if (!string.IsNullOrWhiteSpace(moderationStatus))
+                    companies = companies.Where(x => x.ModerationStatus == moderationStatus);
+                if (!string.IsNullOrWhiteSpace(search))
+                    companies = companies.Where(x => x.Name.ToLower().Contains(search));
 
                 items.AddRange(await companies.Select(x => new ModerationQueueItemDto(
                     x.Id,
@@ -51,13 +55,13 @@ public sealed record GetModerationQueueQuery(
                     x.UpdatedAt)).ToListAsync(cancellationToken));
             }
 
-            if (string.IsNullOrWhiteSpace(request.EntityType) || request.EntityType == "vacancy")
+            if (string.IsNullOrWhiteSpace(entityType) || entityType == "vacancy")
             {
                 var vacancies = _db.Set<JobVacancy>().AsNoTracking().Where(x => !x.IsDeleted);
-                if (!string.IsNullOrWhiteSpace(request.ModerationStatus))
-                    vacancies = vacancies.Where(x => x.ModerationStatus == request.ModerationStatus);
-                if (!string.IsNullOrWhiteSpace(request.Search))
-                    vacancies = vacancies.Where(x => x.Title.ToLower().Contains(request.Search.ToLower()));
+                if (!string.IsNullOrWhiteSpace(moderationStatus))
+                    vacancies = vacancies.Where(x => x.ModerationStatus == moderationStatus);
+                if (!string.IsNullOrWhiteSpace(search))
+                    vacancies = vacancies.Where(x => x.Title.ToLower().Contains(search));
 
                 items.AddRange(await vacancies.Select(x => new ModerationQueueItemDto(
                     x.Id,
@@ -65,6 +69,33 @@ public sealed record GetModerationQueueQuery(
                     x.Title,
                     x.ModerationStatus,
                     x.Status,
+                    x.ModerationComment,
+                    x.ModeratedByUserId,
+                    x.ModeratedAt,
+                    x.CreatedAt,
+                    x.UpdatedAt)).ToListAsync(cancellationToken));
+            }
+
+            if (string.IsNullOrWhiteSpace(entityType) || entityType == "candidate")
+            {
+                var candidates = _db.Set<CandidateProfile>().AsNoTracking().Where(x => !x.IsDeleted);
+                if (!string.IsNullOrWhiteSpace(moderationStatus))
+                    candidates = candidates.Where(x => x.ModerationStatus == moderationStatus);
+                if (!string.IsNullOrWhiteSpace(search))
+                    candidates = candidates.Where(x =>
+                        x.FirstName.ToLower().Contains(search) ||
+                        x.LastName.ToLower().Contains(search) ||
+                        (x.MiddleName != null && x.MiddleName.ToLower().Contains(search)) ||
+                        (x.DesiredPosition != null && x.DesiredPosition.ToLower().Contains(search)) ||
+                        (x.CountryOfResidence != null && x.CountryOfResidence.ToLower().Contains(search)) ||
+                        (x.Citizenship != null && x.Citizenship.ToLower().Contains(search)));
+
+                items.AddRange(await candidates.Select(x => new ModerationQueueItemDto(
+                    x.Id,
+                    "candidate",
+                    (x.FirstName + " " + x.LastName).Trim(),
+                    x.ModerationStatus,
+                    x.JobSearchStatus,
                     x.ModerationComment,
                     x.ModeratedByUserId,
                     x.ModeratedAt,
