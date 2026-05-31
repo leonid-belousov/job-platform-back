@@ -11,4 +11,14 @@ public interface IEmailTemplateRenderer
     EmailTemplateResult RenderEmailConfirmation(string confirmationUrl);
 
     EmailTemplateResult RenderPasswordReset(string resetUrl);
+
+    EmailTemplateResult RenderInterviewInvitationCreated(string vacancyTitle, DateTimeOffset scheduledAt, string format,
+        string? location, string? meetingUrl, string? message);
+
+    EmailTemplateResult RenderInterviewInvitationResponded(string vacancyTitle, string candidateName, string responseStatus,
+        DateTimeOffset scheduledAt);
+
+    EmailTemplateResult RenderNewApplicationsReminder(string vacancyTitle, int newApplicationsCount);
+
+    EmailTemplateResult RenderInactiveVacancyReminder(string vacancyTitle, DateTimeOffset? lastActivityAt);
 }
