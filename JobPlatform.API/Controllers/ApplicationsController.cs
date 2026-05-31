@@ -1,10 +1,15 @@
 using JobPlatform.BLL.CQRS.Applications.Commands.CancelInterviewInvitation;
 using JobPlatform.BLL.CQRS.Applications.Commands.ChangeApplicationStatus;
 using JobPlatform.BLL.CQRS.Applications.Commands.CreateApplication;
+using JobPlatform.BLL.CQRS.Applications.Commands.CreateApplicationNote;
 using JobPlatform.BLL.CQRS.Applications.Commands.CreateInterviewInvitation;
+using JobPlatform.BLL.CQRS.Applications.Commands.DeleteApplicationNote;
 using JobPlatform.BLL.CQRS.Applications.Commands.RespondInterviewInvitation;
+using JobPlatform.BLL.CQRS.Applications.Commands.UpdateApplicationNote;
 using JobPlatform.BLL.CQRS.Applications.Queries.ExportVacancyApplications;
 using JobPlatform.BLL.CQRS.Applications.Queries.GetApplicationInterviewInvitations;
+using JobPlatform.BLL.CQRS.Applications.Queries.GetApplicationNotes;
+using JobPlatform.BLL.CQRS.Applications.Queries.GetCandidateApplicationNotes;
 using JobPlatform.BLL.CQRS.Applications.Queries.GetCandidateApplications;
 using JobPlatform.BLL.CQRS.Applications.Queries.GetVacancyApplications;
 using MediatR;
@@ -49,6 +54,31 @@ public class ApplicationsController : ControllerBase
         return File(bytes, "text/csv", $"vacancy-{vacancyId}-applications.csv");
     }
 
+    [HttpPost("{applicationId:guid}/notes")]
+    public async Task<IActionResult> CreateNote(Guid applicationId, [FromBody] ApplicationNoteRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(new CreateApplicationNoteCommand(applicationId, request.Text), cancellationToken));
+
+    [HttpGet("{applicationId:guid}/notes")]
+    public async Task<IActionResult> GetNotes(Guid applicationId, CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(new GetApplicationNotesQuery(applicationId), cancellationToken));
+
+    [HttpPut("notes/{noteId:guid}")]
+    public async Task<IActionResult> UpdateNote(Guid noteId, [FromBody] ApplicationNoteRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(new UpdateApplicationNoteCommand(noteId, request.Text), cancellationToken));
+
+    [HttpDelete("notes/{noteId:guid}")]
+    public async Task<IActionResult> DeleteNote(Guid noteId, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new DeleteApplicationNoteCommand(noteId), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpGet("candidate/{candidateProfileId:guid}/notes")]
+    public async Task<IActionResult> GetCandidateNotes(Guid candidateProfileId, CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(new GetCandidateApplicationNotesQuery(candidateProfileId), cancellationToken));
+
     [HttpPost("{applicationId:guid}/interview-invitations")]
     public async Task<IActionResult> CreateInterviewInvitation(Guid applicationId,
         [FromBody] CreateInterviewInvitationRequest request, CancellationToken cancellationToken)
@@ -71,6 +101,8 @@ public class ApplicationsController : ControllerBase
     public async Task<IActionResult> CancelInterviewInvitation(Guid invitationId, CancellationToken cancellationToken)
         => Ok(await _mediator.Send(new CancelInterviewInvitationCommand(invitationId), cancellationToken));
 }
+
+public sealed record ApplicationNoteRequest(string Text);
 
 public sealed record CreateInterviewInvitationRequest(
     DateTimeOffset ScheduledAt,

@@ -3,6 +3,7 @@ using System;
 using JobPlatform.DAL.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace JobPlatform.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260531090339_AddApplicationNotes")]
+    partial class AddApplicationNotes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -627,9 +630,6 @@ namespace JobPlatform.DAL.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
-                    b.Property<DateTimeOffset?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("CountryOfResidence")
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)");
@@ -659,12 +659,6 @@ namespace JobPlatform.DAL.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
-
-                    b.Property<bool>("HasNoExperience")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsComplete")
-                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -719,8 +713,6 @@ namespace JobPlatform.DAL.Migrations
 
                     b.HasIndex("DesiredPosition");
 
-                    b.HasIndex("IsComplete");
-
                     b.HasIndex("JobSearchStatus");
 
                     b.HasIndex("ModerationStatus");
@@ -729,46 +721,6 @@ namespace JobPlatform.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("candidate_profiles", (string)null);
-                });
-
-            modelBuilder.Entity("JobPlatform.Core.Entities.Candidates.CandidateSkill", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CandidateProfileId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("SkillCode")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SkillCode");
-
-                    b.HasIndex("CandidateProfileId", "SkillCode")
-                        .IsUnique();
-
-                    b.ToTable("candidate_skills", (string)null);
                 });
 
             modelBuilder.Entity("JobPlatform.Core.Entities.Candidates.Resume", b =>
@@ -2089,17 +2041,6 @@ namespace JobPlatform.DAL.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("JobPlatform.Core.Entities.Candidates.CandidateSkill", b =>
-                {
-                    b.HasOne("JobPlatform.Core.Entities.Candidates.CandidateProfile", "CandidateProfile")
-                        .WithMany("Skills")
-                        .HasForeignKey("CandidateProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CandidateProfile");
-                });
-
             modelBuilder.Entity("JobPlatform.Core.Entities.Candidates.Resume", b =>
                 {
                     b.HasOne("JobPlatform.Core.Entities.Candidates.CandidateProfile", "CandidateProfile")
@@ -2327,8 +2268,6 @@ namespace JobPlatform.DAL.Migrations
                     b.Navigation("Languages");
 
                     b.Navigation("Resumes");
-
-                    b.Navigation("Skills");
                 });
 
             modelBuilder.Entity("JobPlatform.Core.Entities.Companies.Company", b =>

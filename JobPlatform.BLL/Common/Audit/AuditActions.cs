@@ -26,6 +26,9 @@ public static class AuditActions
 
     public const string ApplicationCreated = "application.created";
     public const string ApplicationStatusChanged = "application.status_changed";
+    public const string ApplicationNoteCreated = "application.note_created";
+    public const string ApplicationNoteUpdated = "application.note_updated";
+    public const string ApplicationNoteDeleted = "application.note_deleted";
 
     public const string UserBlocked = "user.blocked";
     public const string UserUnblocked = "user.unblocked";

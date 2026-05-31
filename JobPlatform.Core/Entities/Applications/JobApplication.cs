@@ -16,4 +16,5 @@ public sealed class JobApplication : BaseEntity
     public string? CoverLetter { get; set; }
     public ICollection<ApplicationStatusHistory> StatusHistory { get; set; } = [];
     public ICollection<InterviewInvitation> InterviewInvitations { get; set; } = [];
+    public ICollection<ApplicationNote> Notes { get; set; } = [];
 }
