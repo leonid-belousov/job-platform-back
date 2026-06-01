@@ -1,8 +1,9 @@
-﻿using System.Net;
-using System.Net.Mail;
-using JobPlatform.DAL.Interfaces;
+﻿using JobPlatform.DAL.Interfaces;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MimeKit;
 
 namespace JobPlatform.DAL.Email;
 
@@ -35,51 +36,82 @@ public sealed class SmtpEmailSender : IEmailSender
             return;
         }
 
-        using var message = new MailMessage
-        {
-            From = new MailAddress(_options.FromEmail, _options.FromName),
-            Subject = subject,
-            Body = htmlBody,
-            IsBodyHtml = true
-        };
+        var message = CreateMessage(to, subject, htmlBody, textBody);
+        await SendMessageAsync(message, cancellationToken);
+    }
 
-        message.To.Add(new MailAddress(to));
+    private MimeMessage CreateMessage(string to, string subject, string htmlBody, string? textBody)
+    {
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(_options.FromName, _options.FromEmail));
+        message.To.Add(MailboxAddress.Parse(to));
+        message.Subject = subject;
+
+        var bodyBuilder = new BodyBuilder
+        {
+            HtmlBody = htmlBody
+        };
 
         if (!string.IsNullOrWhiteSpace(textBody))
         {
-            message.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(textBody, null, "text/plain"));
-            message.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(htmlBody, null, "text/html"));
+            bodyBuilder.TextBody = textBody;
         }
 
-        using var client = new SmtpClient(_options.Host, _options.Port)
-        {
-            EnableSsl = _options.EnableSsl,
-            Timeout = Math.Max(_options.TimeoutSeconds, 1) * 1000
-        };
+        message.Body = bodyBuilder.ToMessageBody();
+        return message;
+    }
 
-        if (!string.IsNullOrWhiteSpace(_options.Username))
-        {
-            client.Credentials = new NetworkCredential(_options.Username, _options.Password);
-        }
-
-        using var registration = cancellationToken.Register(client.SendAsyncCancel);
-
+    private async Task SendMessageAsync(MimeMessage message, CancellationToken cancellationToken)
+    {
         try
         {
-            await client.SendMailAsync(message, cancellationToken);
-            _logger.LogInformation("Email sent. Provider={Provider}, To={To}, Subject={Subject}", _options.Provider, to, subject);
+            using var client = new SmtpClient
+            {
+                Timeout = Math.Max(_options.TimeoutSeconds, 1) * 1000
+            };
+
+            await client.ConnectAsync(
+                _options.Host,
+                _options.Port,
+                GetSecureSocketOptions(),
+                cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(_options.Username))
+            {
+                await client.AuthenticateAsync(_options.Username, _options.Password, cancellationToken);
+            }
+
+            await client.SendAsync(message, cancellationToken);
+            await client.DisconnectAsync(true, cancellationToken);
+
+            _logger.LogInformation(
+                "Email sent. Provider={Provider}, To={To}, Subject={Subject}",
+                _options.Provider,
+                string.Join(";", message.To.Mailboxes.Select(x => x.Address)),
+                message.Subject);
         }
         catch (OperationCanceledException)
         {
-            _logger.LogWarning("Email sending canceled. To={To}, Subject={Subject}", to, subject);
-            return;
+            _logger.LogWarning(
+                "Email sending canceled. To={To}, Subject={Subject}",
+                string.Join(";", message.To.Mailboxes.Select(x => x.Address)),
+                message.Subject);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Email sending failed. Provider={Provider}, Host={Host}, Port={Port}, To={To}, Subject={Subject}", _options.Provider, _options.Host, _options.Port, to, subject);
-            return;
+            _logger.LogError(
+                ex,
+                "Email sending failed. Provider={Provider}, Host={Host}, Port={Port}, To={To}, Subject={Subject}",
+                _options.Provider,
+                _options.Host,
+                _options.Port,
+                string.Join(";", message.To.Mailboxes.Select(x => x.Address)),
+                message.Subject);
         }
     }
+
+    private SecureSocketOptions GetSecureSocketOptions()
+        => _options.EnableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.Auto;
 
     private bool ValidateOptions()
     {
