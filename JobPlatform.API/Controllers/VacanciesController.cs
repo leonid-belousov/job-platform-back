@@ -6,6 +6,7 @@ using JobPlatform.BLL.CQRS.Vacancies.Commands.PublishVacancy;
 using JobPlatform.BLL.CQRS.Vacancies.Commands.UnassignRecruiter;
 using JobPlatform.BLL.CQRS.Vacancies.Commands.UpdateVacancy;
 using JobPlatform.BLL.CQRS.Vacancies.Queries.GetMyCompanyVacancies;
+using JobPlatform.BLL.CQRS.Vacancies.Queries.GetVacancyById;
 using JobPlatform.BLL.CQRS.Vacancies.Queries.GetVacancyRecruiters;
 using JobPlatform.BLL.CQRS.Vacancies.Queries.SearchVacancies;
 using MediatR;
@@ -97,6 +98,13 @@ public class VacanciesController : ControllerBase
             new SearchVacanciesQuery(text, country, city, salaryFrom, salaryTo, employmentType, workFormat,
                 experienceLevel, currency, sortBy, page, pageSize),
             cancellationToken));
+
+    [HttpGet("{vacancyId:guid}")]
+    public async Task<IActionResult> GetById(Guid vacancyId, CancellationToken cancellationToken)
+    {
+        var vacancy = await _mediator.Send(new GetVacancyByIdQuery(vacancyId), cancellationToken);
+        return vacancy is null ? NotFound() : Ok(vacancy);
+    }
 }
 
 public sealed record AssignRecruiterRequest(Guid RecruiterUserId);
