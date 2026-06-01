@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using JobPlatform.Core.Entities.Legal;
 using JobPlatform.Core.Entities.Users;
 using JobPlatform.DAL.Context;
 using JobPlatform.DAL.Interfaces;
@@ -17,6 +18,8 @@ namespace JobPlatform.API.Tests.Infrastructure;
 
 public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
+    public const string TestLegalDocumentVersion = "test-v1";
+
     private readonly string _databaseName = $"recruitment-api-tests-{Guid.NewGuid():N}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -74,6 +77,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         
         await roleSeeder.SeedAsync();
         await dictionarySeeder.SeedAsync();
+        await SeedLegalDocumentsAsync(db);
     }
 
     public async Task<string> RegisterAndGetTokenAsync(string roleCode, string? email = null)
@@ -83,7 +87,12 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         {
             email = email ?? $"{roleCode}-{Guid.NewGuid():N}@example.com",
             password = "Password123",
-            roleCode
+            roleCode,
+            acceptTerms = true,
+            termsVersion = TestLegalDocumentVersion,
+            acceptPrivacyPolicy = true,
+            privacyPolicyVersion = TestLegalDocumentVersion,
+            language = "ru"
         });
 
         response.EnsureSuccessStatusCode();
@@ -126,6 +135,33 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
         var permissions = role.RolePermissions.Select(x => x.Permission.Code).Distinct().ToArray();
         return jwtTokenService.CreateAccessToken(user, new[] { role.Code }, permissions);
+    }
+
+    private static async Task SeedLegalDocumentsAsync(AppDbContext db)
+    {
+        await db.Set<LegalDocument>().AddRangeAsync(
+            new LegalDocument
+            {
+                Type = "terms",
+                Version = TestLegalDocumentVersion,
+                Language = "ru",
+                Title = "Test terms of service",
+                Content = "Test terms of service content.",
+                IsActive = true,
+                PublishedAt = DateTimeOffset.UtcNow
+            },
+            new LegalDocument
+            {
+                Type = LegalDocumentTypes.PrivacyPolicy,
+                Version = TestLegalDocumentVersion,
+                Language = "ru",
+                Title = "Test privacy policy",
+                Content = "Test privacy policy content.",
+                IsActive = true,
+                PublishedAt = DateTimeOffset.UtcNow
+            });
+
+        await db.SaveChangesAsync();
     }
 
     private sealed record AuthResponsePayload(string AccessToken, string RefreshToken, Guid UserId, string Email);
