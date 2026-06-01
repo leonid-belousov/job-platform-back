@@ -1,3 +1,4 @@
+using JobPlatform.Core.Entities.Legal;
 using JobPlatform.Core.Entities.Users;
 using JobPlatform.DAL.Context;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,7 @@ public class RoleSeeder
     {
         _db = db;
     }
-
+    public const string TestLegalDocumentVersion = "test-v1";
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
         if (_db.Database.IsRelational())
@@ -22,6 +23,33 @@ public class RoleSeeder
 
         await SeedRoleDefinitions(cancellationToken);
         await SeedPermissionDefinitions(cancellationToken);
+        if (!await _db.Set<LegalDocument>().Where(p => p.Version == TestLegalDocumentVersion).AnyAsync(cancellationToken))
+        {
+            await _db.Set<LegalDocument>().AddRangeAsync(
+                new LegalDocument
+                {
+                    Type = "terms",
+                    Version = TestLegalDocumentVersion,
+                    Language = "ru",
+                    Title = "Test terms of service",
+                    Content = "Test terms of service content.",
+                    IsActive = true,
+                    PublishedAt = DateTimeOffset.UtcNow
+                },
+                new LegalDocument
+                {
+                    Type = LegalDocumentTypes.PrivacyPolicy,
+                    Version = TestLegalDocumentVersion,
+                    Language = "ru",
+                    Title = "Test privacy policy",
+                    Content = "Test privacy policy content.",
+                    IsActive = true,
+                    PublishedAt = DateTimeOffset.UtcNow
+                });
+
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+       
     }
 
     private async Task SeedRoleDefinitions(CancellationToken cancellationToken)
