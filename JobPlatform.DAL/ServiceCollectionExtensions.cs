@@ -38,6 +38,7 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<RefreshTokenCleanupHostedService>();
         services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.Configure<EmailOptions>(configuration.GetSection("Email"));
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IEmailSender, SmtpEmailSender>();
     }
