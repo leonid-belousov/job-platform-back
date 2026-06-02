@@ -143,7 +143,7 @@ public sealed record SignUpCommand(
                 },
                 UserId: user.Id), cancellationToken);
 
-            var confirmationUrl = BuildUrl("EmailConfirmationUrl", "confirm-email", rawConfirmationToken);
+            var confirmationUrl = BuildUrl("EmailConfirmationUrl", "auth/confirm-email", rawConfirmationToken, request.Email);
             var emailTemplate = _emailTemplateRenderer.RenderEmailConfirmation(confirmationUrl);
             await _emailSender.SendAsync(user.Email, emailTemplate.Subject, emailTemplate.HtmlBody,
                 emailTemplate.TextBody, cancellationToken);
@@ -173,7 +173,7 @@ public sealed record SignUpCommand(
             }
         }
 
-        private string BuildUrl(string configurationKey, string path, string token)
+        private string BuildUrl(string configurationKey, string path, string token, string email)
         {
             var template = _configuration[$"Auth:{configurationKey}"];
             if (!string.IsNullOrWhiteSpace(template))
@@ -182,7 +182,7 @@ public sealed record SignUpCommand(
             }
 
             var baseUrl = _configuration["Auth:FrontendBaseUrl"]?.TrimEnd('/') ?? "http://localhost:3000";
-            return $"{baseUrl}/{path}?token={Uri.EscapeDataString(token)}";
+            return $"{baseUrl}/{path}?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(email)}";
         }
     }
 }

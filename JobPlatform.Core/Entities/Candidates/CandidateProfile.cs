@@ -23,6 +23,9 @@ public sealed class CandidateProfile : BaseEntity
     public string? Currency { get; set; }
     public string? About { get; set; }
 
+    public Guid? PhotoFileId { get; set; }
+    public string? PhotoUrl { get; set; }
+
     public bool IsVisible { get; set; } = true;
     public string JobSearchStatus { get; set; } = CandidateJobSearchStatuses.ActiveSearch;
     public bool HasNoExperience { get; set; }
@@ -36,6 +39,7 @@ public sealed class CandidateProfile : BaseEntity
 
     public ICollection<CandidateExperience> Experiences { get; set; } = [];
     public ICollection<CandidateEducation> Educations { get; set; } = [];
+    public ICollection<CandidateCertificate> Certificates { get; set; } = [];
     public ICollection<CandidateLanguage> Languages { get; set; } = [];
     public ICollection<CandidateSkill> Skills { get; set; } = [];
     public ICollection<Resume> Resumes { get; set; } = [];

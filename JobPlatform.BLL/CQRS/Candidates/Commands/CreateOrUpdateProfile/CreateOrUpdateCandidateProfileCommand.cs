@@ -19,6 +19,21 @@ public sealed record CandidateExperienceRequest(
     DateOnly? EndDate,
     string? Description);
 
+public sealed record CandidateEducationRequest(
+    string InstitutionName,
+    string? Faculty,
+    string? Degree,
+    int? StartYear,
+    int? EndYear);
+
+public sealed record CandidateCertificateRequest(
+    string Name,
+    string? Issuer,
+    DateOnly? IssueDate,
+    DateOnly? ExpirationDate,
+    string? CredentialId,
+    string? CredentialUrl);
+
 public sealed record CandidateSkillRequest(string SkillCode, string? Name);
 
 public sealed record CreateOrUpdateCandidateProfileCommand(
@@ -35,10 +50,14 @@ public sealed record CreateOrUpdateCandidateProfileCommand(
     string? Currency,
     string JobSearchStatus,
     string? About,
+    Guid? PhotoFileId,
+    string? PhotoUrl,
     bool IsVisible,
     bool HasNoExperience,
     IReadOnlyCollection<CandidateLanguageRequest> Languages,
     IReadOnlyCollection<CandidateExperienceRequest> Experiences,
+    IReadOnlyCollection<CandidateEducationRequest> Educations,
+    IReadOnlyCollection<CandidateCertificateRequest> Certificates,
     IReadOnlyCollection<CandidateSkillRequest> Skills) : IRequest<CandidateProfileDto>
 {
     public class
@@ -64,6 +83,8 @@ public sealed record CreateOrUpdateCandidateProfileCommand(
             var profile = await _dbContext.Set<CandidateProfile>()
                 .Include(p => p.Languages.Where(x => !x.IsDeleted))
                 .Include(p => p.Experiences.Where(x => !x.IsDeleted))
+                .Include(p => p.Educations.Where(x => !x.IsDeleted))
+                .Include(p => p.Certificates.Where(x => !x.IsDeleted))
                 .Include(p => p.Skills.Where(x => !x.IsDeleted))
                 .FirstOrDefaultAsync(p => p.UserId == userId && !p.IsDeleted, cancellationToken);
 
@@ -83,12 +104,16 @@ public sealed record CreateOrUpdateCandidateProfileCommand(
                     profile.ExpectedSalary,
                     profile.Currency,
                     profile.About,
+                    profile.PhotoFileId,
+                    profile.PhotoUrl,
                     profile.IsVisible,
                     profile.JobSearchStatus,
                     profile.HasNoExperience,
                     profile.IsComplete,
                     Languages = profile.Languages.Select(x => new { x.LanguageCode, x.Level }).ToArray(),
                     Experiences = profile.Experiences.Select(x => new { x.CompanyName, x.Position, x.StartDate, x.EndDate }).ToArray(),
+                    Educations = profile.Educations.Select(x => new { x.InstitutionName, x.Faculty, x.Degree, x.StartYear, x.EndYear }).ToArray(),
+                    Certificates = profile.Certificates.Select(x => new { x.Name, x.Issuer, x.IssueDate, x.ExpirationDate, x.CredentialId, x.CredentialUrl }).ToArray(),
                     Skills = profile.Skills.Select(x => new { x.SkillCode, x.Name }).ToArray()
                 };
 
@@ -114,12 +139,16 @@ public sealed record CreateOrUpdateCandidateProfileCommand(
             profile.Currency = string.IsNullOrWhiteSpace(request.Currency) ? null : request.Currency.Trim().ToLowerInvariant();
             profile.JobSearchStatus = request.JobSearchStatus.Trim().ToLowerInvariant();
             profile.About = string.IsNullOrWhiteSpace(request.About) ? null : request.About.Trim();
+            profile.PhotoFileId = request.PhotoFileId;
+            profile.PhotoUrl = string.IsNullOrWhiteSpace(request.PhotoUrl) ? null : request.PhotoUrl.Trim();
             profile.IsVisible = request.IsVisible;
             profile.HasNoExperience = request.HasNoExperience;
             profile.UpdatedAt = DateTimeOffset.UtcNow;
 
             ReplaceLanguages(profile, request.Languages);
             ReplaceExperiences(profile, request.Experiences, request.HasNoExperience);
+            ReplaceEducations(profile, request.Educations);
+            ReplaceCertificates(profile, request.Certificates);
             await ReplaceSkillsAsync(profile, request.Skills, cancellationToken);
 
             var isComplete = IsProfileComplete(profile);
@@ -145,6 +174,8 @@ public sealed record CreateOrUpdateCandidateProfileCommand(
                     profile.ExpectedSalary,
                     profile.Currency,
                     profile.About,
+                    profile.PhotoFileId,
+                    profile.PhotoUrl,
                     profile.IsVisible,
                     profile.JobSearchStatus,
                     profile.HasNoExperience,
@@ -152,6 +183,8 @@ public sealed record CreateOrUpdateCandidateProfileCommand(
                     profile.CompletedAt,
                     Languages = profile.Languages.Select(x => new { x.LanguageCode, x.Level }).ToArray(),
                     Experiences = profile.Experiences.Select(x => new { x.CompanyName, x.Position, x.StartDate, x.EndDate }).ToArray(),
+                    Educations = profile.Educations.Select(x => new { x.InstitutionName, x.Faculty, x.Degree, x.StartYear, x.EndYear }).ToArray(),
+                    Certificates = profile.Certificates.Select(x => new { x.Name, x.Issuer, x.IssueDate, x.ExpirationDate, x.CredentialId, x.CredentialUrl }).ToArray(),
                     Skills = profile.Skills.Select(x => new { x.SkillCode, x.Name }).ToArray()
                 },
                 UserId: userId), cancellationToken);
@@ -204,6 +237,51 @@ public sealed record CreateOrUpdateCandidateProfileCommand(
                     StartDate = experience.StartDate,
                     EndDate = experience.EndDate,
                     Description = string.IsNullOrWhiteSpace(experience.Description) ? null : experience.Description.Trim()
+                });
+            }
+        }
+
+        private void ReplaceEducations(CandidateProfile profile, IReadOnlyCollection<CandidateEducationRequest> educations)
+        {
+            if (profile.Educations.Count > 0)
+            {
+                _dbContext.Set<CandidateEducation>().RemoveRange(profile.Educations);
+                profile.Educations.Clear();
+            }
+
+            foreach (var education in educations)
+            {
+                profile.Educations.Add(new CandidateEducation
+                {
+                    CandidateProfileId = profile.Id,
+                    InstitutionName = education.InstitutionName.Trim(),
+                    Faculty = string.IsNullOrWhiteSpace(education.Faculty) ? null : education.Faculty.Trim(),
+                    Degree = string.IsNullOrWhiteSpace(education.Degree) ? null : education.Degree.Trim(),
+                    StartYear = education.StartYear,
+                    EndYear = education.EndYear
+                });
+            }
+        }
+
+        private void ReplaceCertificates(CandidateProfile profile, IReadOnlyCollection<CandidateCertificateRequest> certificates)
+        {
+            if (profile.Certificates.Count > 0)
+            {
+                _dbContext.Set<CandidateCertificate>().RemoveRange(profile.Certificates);
+                profile.Certificates.Clear();
+            }
+
+            foreach (var certificate in certificates)
+            {
+                profile.Certificates.Add(new CandidateCertificate
+                {
+                    CandidateProfileId = profile.Id,
+                    Name = certificate.Name.Trim(),
+                    Issuer = string.IsNullOrWhiteSpace(certificate.Issuer) ? null : certificate.Issuer.Trim(),
+                    IssueDate = certificate.IssueDate,
+                    ExpirationDate = certificate.ExpirationDate,
+                    CredentialId = string.IsNullOrWhiteSpace(certificate.CredentialId) ? null : certificate.CredentialId.Trim(),
+                    CredentialUrl = string.IsNullOrWhiteSpace(certificate.CredentialUrl) ? null : certificate.CredentialUrl.Trim()
                 });
             }
         }
@@ -271,6 +349,8 @@ public sealed record CreateOrUpdateCandidateProfileCommand(
                 profile.ExpectedSalary,
                 profile.Currency,
                 profile.About,
+                profile.PhotoFileId,
+                profile.PhotoUrl,
                 profile.IsVisible,
                 profile.JobSearchStatus,
                 profile.HasNoExperience,
@@ -290,6 +370,17 @@ public sealed record CreateOrUpdateCandidateProfileCommand(
                     .OrderByDescending(x => x.StartDate)
                     .Select(x => new CandidateExperienceDto(x.Id, x.CompanyName, x.Position, x.StartDate, x.EndDate,
                         x.Description))
+                    .ToArray(),
+                profile.Educations
+                    .Where(x => !x.IsDeleted)
+                    .OrderByDescending(x => x.EndYear ?? x.StartYear ?? 0)
+                    .Select(x => new CandidateEducationDto(x.Id, x.InstitutionName, x.Faculty, x.Degree, x.StartYear, x.EndYear))
+                    .ToArray(),
+                profile.Certificates
+                    .Where(x => !x.IsDeleted)
+                    .OrderByDescending(x => x.IssueDate)
+                    .Select(x => new CandidateCertificateDto(x.Id, x.Name, x.Issuer, x.IssueDate, x.ExpirationDate,
+                        x.CredentialId, x.CredentialUrl))
                     .ToArray(),
                 profile.Skills
                     .Where(x => !x.IsDeleted)
