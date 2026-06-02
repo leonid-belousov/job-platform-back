@@ -32,6 +32,8 @@ public sealed record ApproveCandidateCommand(Guid CandidateProfileId, string? Co
             var profile = await _db.Set<CandidateProfile>()
                               .Include(x => x.Languages.Where(language => !language.IsDeleted))
                               .Include(x => x.Experiences.Where(experience => !experience.IsDeleted))
+                              .Include(x => x.Educations.Where(education => !education.IsDeleted))
+                              .Include(x => x.Certificates.Where(certificate => !certificate.IsDeleted))
                               .Include(x => x.Skills.Where(skill => !skill.IsDeleted))
                               .FirstOrDefaultAsync(x => x.Id == request.CandidateProfileId && !x.IsDeleted,
                                   cancellationToken)
@@ -71,6 +73,8 @@ public sealed record ApproveCandidateCommand(Guid CandidateProfileId, string? Co
                 profile.ExpectedSalary,
                 profile.Currency,
                 profile.About,
+                profile.PhotoFileId,
+                profile.PhotoUrl,
                 profile.IsVisible,
                 profile.JobSearchStatus,
                 profile.HasNoExperience,
@@ -89,6 +93,16 @@ public sealed record ApproveCandidateCommand(Guid CandidateProfileId, string? Co
                     .Where(x => !x.IsDeleted)
                     .OrderByDescending(x => x.StartDate)
                     .Select(x => new CandidateExperienceDto(x.Id, x.CompanyName, x.Position, x.StartDate, x.EndDate, x.Description))
+                    .ToArray(),
+                profile.Educations
+                    .Where(x => !x.IsDeleted)
+                    .OrderByDescending(x => x.EndYear ?? x.StartYear ?? 0)
+                    .Select(x => new CandidateEducationDto(x.Id, x.InstitutionName, x.Faculty, x.Degree, x.StartYear, x.EndYear))
+                    .ToArray(),
+                profile.Certificates
+                    .Where(x => !x.IsDeleted)
+                    .OrderByDescending(x => x.IssueDate)
+                    .Select(x => new CandidateCertificateDto(x.Id, x.Name, x.Issuer, x.IssueDate, x.ExpirationDate, x.CredentialId, x.CredentialUrl))
                     .ToArray(),
                 profile.Skills
                     .Where(x => !x.IsDeleted)
