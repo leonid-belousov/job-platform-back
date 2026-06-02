@@ -1,0 +1,72 @@
+namespace JobPlatform.BLL.CQRS.Applications.DTO;
+
+public sealed record CandidateApplicationListItemDto(
+    Guid Id,
+    Guid VacancyId,
+    string VacancyTitle,
+    string? CompanyName,
+    string? CompanyLogoUrl,
+    string Status,
+    string? CoverLetter,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? UpdatedAt,
+    string? City,
+    string? Country,
+    string? EmploymentType,
+    string? WorkFormat,
+    string? ExperienceLevel,
+    decimal? SalaryFrom,
+    decimal? SalaryTo,
+    string? Currency,
+    DateTimeOffset? PublishedAt,
+    DateTimeOffset? LastInterviewAt,
+    string? LastInterviewStatus,
+    bool HasUnreadUpdates);
+
+public sealed record CandidateApplicationDetailsDto(
+    Guid Id,
+    Guid VacancyId,
+    string VacancyTitle,
+    string? CompanyName,
+    string? CompanyDescription,
+    string? CompanyIndustry,
+    string? CompanyWebsite,
+    string? CompanyLogoUrl,
+    string Status,
+    string? CoverLetter,
+    Guid ResumeId,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? UpdatedAt,
+    string? City,
+    string? Country,
+    string? EmploymentType,
+    string? WorkFormat,
+    string? ExperienceLevel,
+    decimal? SalaryFrom,
+    decimal? SalaryTo,
+    string? Currency,
+    string? Description,
+    string? Requirements,
+    string? Responsibilities,
+    string? Conditions,
+    DateTimeOffset? PublishedAt,
+    IReadOnlyCollection<CandidateApplicationStatusHistoryDto> StatusHistory,
+    IReadOnlyCollection<CandidateApplicationInterviewDto> InterviewInvitations);
+
+public sealed record CandidateApplicationStatusHistoryDto(
+    Guid Id,
+    string OldStatus,
+    string NewStatus,
+    string? Comment,
+    DateTimeOffset CreatedAt);
+
+public sealed record CandidateApplicationInterviewDto(
+    Guid Id,
+    DateTimeOffset ScheduledAt,
+    string Format,
+    string? Location,
+    string? MeetingUrl,
+    string? Message,
+    string Status,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? CandidateRespondedAt);
