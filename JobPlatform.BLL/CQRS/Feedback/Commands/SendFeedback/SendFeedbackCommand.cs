@@ -26,16 +26,30 @@ public sealed class SendFeedbackCommandHandler : IRequestHandler<SendFeedbackCom
 
     public Task Handle(SendFeedbackCommand request, CancellationToken cancellationToken)
     {
-        var recipient = _configuration["Feedback:RecipientEmail"]
-                        ?? _configuration["Email:FromEmail"]
-                        ?? throw new InvalidOperationException("Feedback:RecipientEmail or Email:FromEmail must be configured.");
-
+        var recipient = GetRecipientEmail();
         var normalizedName = request.Name.Trim();
         var subject = $"Новое обращение с главной страницы: {normalizedName}";
         var textBody = BuildTextBody(request);
         var htmlBody = BuildHtmlBody(request);
 
         return _emailSender.SendAsync(recipient, subject, htmlBody, textBody, cancellationToken);
+    }
+
+    private string GetRecipientEmail()
+    {
+        var recipient = _configuration["Feedback:RecipientEmail"];
+        if (!string.IsNullOrWhiteSpace(recipient))
+        {
+            return recipient;
+        }
+
+        recipient = _configuration["Email:FromEmail"];
+        if (!string.IsNullOrWhiteSpace(recipient))
+        {
+            return recipient;
+        }
+
+        throw new InvalidOperationException("Feedback:RecipientEmail or Email:FromEmail must be configured.");
     }
 
     private static string BuildTextBody(SendFeedbackCommand request)
