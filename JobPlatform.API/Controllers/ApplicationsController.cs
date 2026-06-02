@@ -10,8 +10,10 @@ using JobPlatform.BLL.CQRS.Applications.Queries.ExportVacancyApplications;
 using JobPlatform.BLL.CQRS.Applications.Queries.ExportVacancyApplicationsXlsx;
 using JobPlatform.BLL.CQRS.Applications.Queries.GetApplicationInterviewInvitations;
 using JobPlatform.BLL.CQRS.Applications.Queries.GetApplicationNotes;
-using JobPlatform.BLL.CQRS.Applications.Queries.GetCandidateApplicationNotes;
+using JobPlatform.BLL.CQRS.Applications.Queries.GetCandidateApplicationDetails;
 using JobPlatform.BLL.CQRS.Applications.Queries.GetCandidateApplications;
+using JobPlatform.BLL.CQRS.Applications.Queries.GetCandidateApplicationViews;
+using JobPlatform.BLL.CQRS.Applications.Queries.GetCandidateApplicationNotes;
 using JobPlatform.BLL.CQRS.Applications.Queries.GetVacancyApplications;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -43,6 +45,14 @@ public class ApplicationsController : ControllerBase
     [HttpGet("my")]
     public async Task<IActionResult> My(CancellationToken cancellationToken)
         => Ok(await _mediator.Send(new GetCandidateApplicationsQuery(), cancellationToken));
+
+    [HttpGet("my/view")]
+    public async Task<IActionResult> MyView([FromQuery] string? status, CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(new GetCandidateApplicationViewsQuery(status), cancellationToken));
+
+    [HttpGet("my/view/{applicationId:guid}")]
+    public async Task<IActionResult> MyViewDetails(Guid applicationId, CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(new GetCandidateApplicationDetailsQuery(applicationId), cancellationToken));
 
     [HttpGet("by-vacancy/{vacancyId:guid}")]
     public async Task<IActionResult> ByVacancy(Guid vacancyId, CancellationToken cancellationToken)
