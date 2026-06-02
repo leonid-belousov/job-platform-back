@@ -22,6 +22,7 @@ public class CandidateProfileConfiguration : IEntityTypeConfiguration<CandidateP
         builder.Property(x => x.ExpectedSalary).HasPrecision(18, 2);
         builder.Property(x => x.Currency).HasMaxLength(10);
         builder.Property(x => x.About).HasMaxLength(4000);
+        builder.Property(x => x.PhotoUrl).HasMaxLength(1000);
         builder.Property(x => x.JobSearchStatus).HasMaxLength(50).IsRequired();
         builder.Property(x => x.ModerationStatus).HasMaxLength(50).IsRequired();
         builder.Property(x => x.ModerationComment).HasMaxLength(2000);
@@ -33,11 +34,22 @@ public class CandidateProfileConfiguration : IEntityTypeConfiguration<CandidateP
         builder.HasIndex(x => x.ModerationStatus);
         builder.HasIndex(x => x.DesiredPosition);
         builder.HasIndex(x => x.IsComplete);
+        builder.HasIndex(x => x.PhotoFileId);
 
         builder.HasOne(x => x.User)
             .WithMany()
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(x => x.Educations)
+            .WithOne(x => x.CandidateProfile)
+            .HasForeignKey(x => x.CandidateProfileId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(x => x.Certificates)
+            .WithOne(x => x.CandidateProfile)
+            .HasForeignKey(x => x.CandidateProfileId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(x => x.Languages)
             .WithOne(x => x.CandidateProfile)
