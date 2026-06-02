@@ -13,6 +13,23 @@ public sealed record CandidateExperienceDto(
     DateOnly? EndDate,
     string? Description);
 
+public sealed record CandidateEducationDto(
+    Guid Id,
+    string InstitutionName,
+    string? Faculty,
+    string? Degree,
+    int? StartYear,
+    int? EndYear);
+
+public sealed record CandidateCertificateDto(
+    Guid Id,
+    string Name,
+    string? Issuer,
+    DateOnly? IssueDate,
+    DateOnly? ExpirationDate,
+    string? CredentialId,
+    string? CredentialUrl);
+
 public sealed record CandidateSkillDto(
     Guid Id,
     string SkillCode,
@@ -32,6 +49,8 @@ public sealed record CandidateProfileDto(
     decimal? ExpectedSalary,
     string? Currency,
     string? About,
+    Guid? PhotoFileId,
+    string? PhotoUrl,
     bool IsVisible,
     string JobSearchStatus,
     bool HasNoExperience,
@@ -43,4 +62,6 @@ public sealed record CandidateProfileDto(
     DateTimeOffset? ModeratedAt,
     IReadOnlyCollection<CandidateLanguageDto> Languages,
     IReadOnlyCollection<CandidateExperienceDto> Experiences,
+    IReadOnlyCollection<CandidateEducationDto> Educations,
+    IReadOnlyCollection<CandidateCertificateDto> Certificates,
     IReadOnlyCollection<CandidateSkillDto> Skills);
