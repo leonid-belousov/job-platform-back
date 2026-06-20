@@ -44,6 +44,8 @@ public static class AuditActions
     public const string CandidateRejected = "candidate.rejected";
     public const string ResumeCreated = "resume.created";
     public const string FileUploaded = "file.uploaded";
+
+    public const string ContentPageUpserted = "content_page.upserted";
     
     public const string DictionaryItemCreated = "dictionary.item_created";
     public const string DictionaryItemUpdated = "dictionary.item_updated";
