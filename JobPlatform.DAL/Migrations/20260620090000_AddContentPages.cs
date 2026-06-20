@@ -1,9 +1,13 @@
+using JobPlatform.DAL.Context;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace JobPlatform.DAL.Migrations;
 
+[DbContext(typeof(AppDbContext))]
+[Migration("20260620090000_AddContentPages")]
 public partial class AddContentPages : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
